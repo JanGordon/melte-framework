@@ -1,0 +1,10 @@
+<script>
+    import layout from "$routes/layout.js"
+</script>
+
+<Layout>
+    <h1>A nested Layout</h1>
+    <slot></slot>
+</Layout>
+
+// THis contains a nested layout

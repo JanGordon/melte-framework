@@ -1,0 +1,4 @@
+<script>
+    SELF.innerText = "Buff"
+</script>
+<p>HEllo</p>

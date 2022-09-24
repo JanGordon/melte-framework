@@ -1,0 +1,1 @@
+The API folder is for request that do not return html or svelte. This means that you cannot put html or melte files in here without an error.
