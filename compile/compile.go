@@ -16,7 +16,7 @@ func main() {
 	}
 }
 
-func BuildFile(filePath string) {
+func BuildFile(filePath string, outPath string) {
 	// result := api.Build(api.BuildOptions{
 	// 	EntryPoints:       []string{filePath},
 	// 	Bundle:            true,
@@ -38,7 +38,7 @@ func BuildFile(filePath string) {
 
 	html := ReplaceComponentWithHTML(filePath)
 	// Loop over every script in:
-	BuildPage(html, filePath)
+	BuildPage(html, outPath, false)
 
 	// OutScript := `const SELF = document.querySelector("[melte-id='']")`
 	// scripts, html := RemoveJS(filePath)

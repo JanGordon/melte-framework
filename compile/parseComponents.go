@@ -11,7 +11,7 @@ import (
 
 func ReplaceComponentWithHTML(filepath string) []*html.Node {
 	f, err := os.ReadFile(filepath)
-	writeFile, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0600)
+	//writeFile, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}
@@ -26,9 +26,10 @@ func ReplaceComponentWithHTML(filepath string) []*html.Node {
 	fmt.Println("Starting Build")
 	for child := range root {
 		replace(root[child])
-		if err = html.Render(writeFile, root[child]); err != nil {
-			panic(err)
-		}
+
+		// if err = html.Render(writeFile, root[child]); err != nil {
+		// 	panic(err)
+		// }
 	}
 	fmt.Println(root)
 	return root
