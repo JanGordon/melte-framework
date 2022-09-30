@@ -23,7 +23,6 @@ func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS boo
 	scriptExceptImports := ""
 	if findLayouts {
 		root = populateLayout(root, outPath, writeFile)
-
 	}
 	for script := range Scripts {
 
