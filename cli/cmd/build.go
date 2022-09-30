@@ -32,6 +32,6 @@ func Build() {
 	// compile.BuildFile("app.js")
 	// os.Remove("temp.js")
 
-	compile.BuildFile("test.html", "out.html")
+	compile.BuildFile()
 
 }

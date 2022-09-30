@@ -3,11 +3,14 @@ package compile
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
+
+var CCount = 0
 
 func ReplaceComponentWithHTML(filepath string) []*html.Node {
 	f, err := os.ReadFile(filepath)
@@ -23,7 +26,7 @@ func ReplaceComponentWithHTML(filepath string) []*html.Node {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Starting Build")
+	CCount++
 	for child := range root {
 		replace(root[child])
 
@@ -31,16 +34,20 @@ func ReplaceComponentWithHTML(filepath string) []*html.Node {
 		// 	panic(err)
 		// }
 	}
-	fmt.Println(root)
+	CCount = 0
 	return root
 }
 
 var Scripts []html.Node
+var ScriptIDs []string
 
 func replace(n *html.Node) {
 	if n.Type == html.ElementNode {
-		f, err := os.ReadFile(n.Data + ".melte")
-		fmt.Println(n.Data)
+		wd, err := os.Getwd()
+		if err != nil {
+			panic("Failed to get working directory")
+		}
+		f, err := os.ReadFile(filepath.Join(wd, "components", n.Data+".melte"))
 		if err == nil {
 			// ComponentName := n.Data + "awdw"
 			// OutScript := ""
@@ -50,24 +57,24 @@ func replace(n *html.Node) {
 			// 	OutScript += script
 			// }
 			// fmt.Println(OutScript)
-			ReplaceComponentWithHTML(n.Data + ".melte")
+			ReplaceComponentWithHTML(filepath.Join(wd, "components", n.Data+".melte"))
 			component, err := html.ParseFragment(strings.NewReader(string(f)), &html.Node{
 				Type:     html.ElementNode,
 				Data:     "div",
 				DataAtom: atom.Div,
 			})
-			fmt.Println("Inserting Component...", component)
+			//fmt.Println("Inserting Component...")
 			if err != nil {
 				panic(err)
 			}
 			n.Attr = append(n.Attr, html.Attribute{
 				Key: "melte-id",
-				Val: n.Data + "-awdw",
+				Val: n.Data + fmt.Sprintf("%d", CCount),
 			})
-
+			fmt.Println(CCount)
 			for node := range component {
 				if component[node].Data == "script" {
-					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+"-awdw")
+					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+fmt.Sprintf("%d", CCount))
 					// We need to move the script to end and add module tag
 
 					scriptComponent := &html.Node{
@@ -77,12 +84,11 @@ func replace(n *html.Node) {
 
 					component[node].RemoveChild(component[node].FirstChild)
 					// component[node].AppendChild(scriptComponent)
-					fmt.Println("Inserting Component...", component)
 					if err != nil {
 						panic(err)
 					}
-					fmt.Println("Found Script")
 					Scripts = append(Scripts, *scriptComponent)
+					ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
 
 				} else {
 					n.AppendChild(component[node])

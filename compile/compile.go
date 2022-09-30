@@ -16,7 +16,7 @@ func main() {
 	}
 }
 
-func BuildFile(filePath string, outPath string) {
+func BuildFile() {
 	// result := api.Build(api.BuildOptions{
 	// 	EntryPoints:       []string{filePath},
 	// 	Bundle:            true,
@@ -35,10 +35,20 @@ func BuildFile(filePath string, outPath string) {
 	// if len(result.Errors) > 0 {
 	// 	os.Exit(1)
 	// }
-
-	html := ReplaceComponentWithHTML(filePath)
+	// routesToMake, err := filepath.Glob("route/*.html")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// mux := http.NewServeMux()
+	// rh := http.RedirectHandler("http://example.org", 307)
+	// for _, file := range routesToMake {
+	// 	fmt.Println(strings.TrimSuffix(file, filepath.Ext(file)))
+	// 	mux.Handle("/"+strings.TrimSuffix(file, filepath.Ext(file)), rh)
+	// }
+	// http.ListenAndServe(":3000", mux)
+	html := ReplaceComponentWithHTML("test.html")
 	// Loop over every script in:
-	BuildPage(html, outPath, false)
+	BuildPage(html, "out.html", "./", false, false)
 
 	// OutScript := `const SELF = document.querySelector("[melte-id='']")`
 	// scripts, html := RemoveJS(filePath)
@@ -46,4 +56,8 @@ func BuildFile(filePath string, outPath string) {
 	// 	script := TransformScript(scripts[scriptIndex])
 	// 	OutScript += script
 	// }
+}
+
+func DevServer() {
+
 }

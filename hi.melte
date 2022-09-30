@@ -1,8 +1,0 @@
-<script>
-    import {Scene} from "three"
-    var a  = new Scene()
-    var b : number = 2
-    console.log(a)
-    SELF.innerText = "Buff"
-</script>
-<p>HEllo</p>
