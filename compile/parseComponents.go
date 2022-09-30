@@ -12,15 +12,7 @@ import (
 
 var CCount = 0
 
-func ReplaceComponentWithHTML(f []byte) []*html.Node {
-	root, err := html.ParseFragment(strings.NewReader(string(f)), &html.Node{
-		Type:     html.ElementNode,
-		Data:     "div",
-		DataAtom: atom.Div,
-	})
-	if err != nil {
-		panic(err)
-	}
+func ReplaceComponentWithHTML(root []*html.Node) []*html.Node {
 	CCount++
 	for child := range root {
 		replace(root[child])
@@ -104,4 +96,21 @@ func replace(n *html.Node) {
 	for child := n.FirstChild; child != nil; child = child.NextSibling {
 		replace(child)
 	}
+}
+
+func ParseHTMLFragmentFromPath(path string) []*html.Node {
+	//do what old replacehtml did
+	file, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	root, err := html.ParseFragment(strings.NewReader(string(file)), &html.Node{
+		Type:     html.ElementNode,
+		Data:     "div",
+		DataAtom: atom.Div,
+	})
+	if err != nil {
+		panic(err)
+	}
+	return ReplaceComponentWithHTML(root)
 }

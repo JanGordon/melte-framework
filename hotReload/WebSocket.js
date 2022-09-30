@@ -5,7 +5,9 @@ exampleSocket.onopen = (event) => {
 };
 
 exampleSocket.onmessage = (event) => {
-    window.location.reload()
+    setTimeout(() => { window.location.reload()}, 1000)
+    console.log("REloading")
+    exampleSocket.close()
     exampleSocket.send("reloaded")
 }
 console.log("connected")

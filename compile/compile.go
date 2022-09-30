@@ -2,7 +2,6 @@ package compile
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/evanw/esbuild/pkg/api"
 )
@@ -47,12 +46,7 @@ func BuildFile() {
 	// 	mux.Handle("/"+strings.TrimSuffix(file, filepath.Ext(file)), rh)
 	// }
 	// http.ListenAndServe(":3000", mux)
-	f, err := os.ReadFile("test.html")
-	//writeFile, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		panic(err)
-	}
-	html := ReplaceComponentWithHTML(f)
+	html := ReplaceComponentWithHTML(ParseHTMLFragmentFromPath("test.html"))
 	// Loop over every script in:
 	BuildPage(html, "out.html", "./", false, false, true)
 

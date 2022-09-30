@@ -15,10 +15,12 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+var cwd, _ = os.Getwd()
 var watcher, err = fsnotify.NewWatcher()
 var Server = StartServer()
 var upgrader = websocket.Upgrader{}
 var conn *websocket.Conn
+var wConn = 0
 
 func hotReloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// Upgrade upgrades the HTTP server connection to the WebSocket protocol.
@@ -28,8 +30,14 @@ func hotReloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 		return
 	}
 	fmt.Println("Upgrading to ws")
-	defer conn.Close()
+	wConn = 1
+	if reloadToDo == 1 {
+		listenForSuccess = 1
+		reload(conn, 1)
+	}
 
+	defer conn.Close()
+	defer func() { wConn = 0 }()
 	// Continuosly read and write message
 	for {
 		mt, message, err := conn.ReadMessage()
@@ -38,8 +46,16 @@ func hotReloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 			break
 		}
 		runS(conn, message, mt)
-		fmt.Println(message)
 		message = []byte("reload")
+		if listenForSuccess == 1 {
+			if string(message) == "reloaded" {
+				reloadToDo = 0
+				fmt.Println("reload succeeded")
+			} else {
+				reloadToDo = 1
+				fmt.Println("reload failed")
+			}
+		}
 		err = conn.WriteMessage(mt, message)
 		if err != nil {
 			log.Println("write failed:", err)
@@ -63,6 +79,10 @@ func Run(port int) {
 		log.Fatal("Add failed:", err)
 	}
 }
+
+var reloadToDo = 0
+var listenForSuccess = 0
+
 func runS(conn *websocket.Conn, message []byte, mt int) {
 
 	if err != nil {
@@ -78,6 +98,7 @@ func runS(conn *websocket.Conn, message []byte, mt int) {
 		defer close(done)
 
 		for {
+
 			select {
 			case event, ok := <-watcher.Events:
 				if !ok {
@@ -90,7 +111,19 @@ func runS(conn *websocket.Conn, message []byte, mt int) {
 					// fmt.Println("Ignoring: ", filename)
 				} else {
 					reBuildFull()
-					reload(conn, mt)
+					listenForSuccess = 1
+					err := reload(conn, mt)
+					fmt.Println(err)
+					// if err != "" {
+					// 	reloadToDo = 1
+					// 	fmt.Println("an error occured sending reload request")
+					// }
+					// mt, message, err := conn.ReadMessage()
+					// if err != nil {
+					// 	log.Fatal(err)
+					// 	break
+					// }
+					// handleMessage(mt, string(message))
 
 				}
 				// dir, filename := filepath.Split(path)
@@ -113,19 +146,40 @@ func runS(conn *websocket.Conn, message []byte, mt int) {
 	//compile.BuildPage(compile.ReplaceComponentWithHTML("test.html"), "out.html", false)
 }
 
-func reload(conn *websocket.Conn, mt int) {
+func handleMessage(mt int, message string) {
+	fmt.Println("Message recieved: ", message)
+}
+
+func reload(conn *websocket.Conn, mt int) string {
+	var er = "none"
 	defer func() {
 		if err := recover(); err != nil {
 			log.Println("panic occurred:", err)
+			er = "e"
+
 		}
 	}()
 	if conn != nil {
 		conn.WriteMessage(mt, []byte("reload"))
 		if err := recover(); err != nil {
 			log.Println("write failed :", err)
+		} else {
+			return "none"
 		}
+
 		//wait for reloaded message and if doest come within p.5s resend reload request
 	}
+	return er
+	// go func(conn *websocket.Conn) {
+	// 	time.Sleep(3 * time.Second)
+	// 	mt, message, err := conn.ReadMessage()
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	if string(message) != "reloaded" {
+	// 		reload(conn, mt)
+	// 	}
+	// }(conn)
 }
 
 func reBuildChunk(dir string) {
@@ -222,16 +276,10 @@ func visitPath(path string, di fs.DirEntry, err error) error {
 		}
 	}
 	// make server better and make it work to host the html fil in th e folder if it is just a folder
-	fmt.Println("Rebuilding")
 
 	dir, filename := filepath.Split(path)
 	if filepath.Ext(path) == ".html" && filename != "out.html" && !strings.HasPrefix(filename, "layout") {
-		fmt.Println("Rebuilding", path)
-		file, err := os.ReadFile(path)
-		if err != nil {
-			panic(err)
-		}
-		compile.BuildPage(compile.ReplaceComponentWithHTML(file), dir+"out.html", dir, false, true, false)
+		compile.BuildPage(compile.ReplaceComponentWithHTML(compile.ParseHTMLFragmentFromPath(path)), dir+"out.html", dir, false, true, true)
 	}
 	return nil
 }
