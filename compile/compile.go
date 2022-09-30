@@ -2,6 +2,7 @@ package compile
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/evanw/esbuild/pkg/api"
 )
@@ -46,9 +47,14 @@ func BuildFile() {
 	// 	mux.Handle("/"+strings.TrimSuffix(file, filepath.Ext(file)), rh)
 	// }
 	// http.ListenAndServe(":3000", mux)
-	html := ReplaceComponentWithHTML("test.html")
+	f, err := os.ReadFile("test.html")
+	//writeFile, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+	html := ReplaceComponentWithHTML(f)
 	// Loop over every script in:
-	BuildPage(html, "out.html", "./", false, false)
+	BuildPage(html, "out.html", "./", false, false, true)
 
 	// OutScript := `const SELF = document.querySelector("[melte-id='']")`
 	// scripts, html := RemoveJS(filePath)

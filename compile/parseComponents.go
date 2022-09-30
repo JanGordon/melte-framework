@@ -12,12 +12,7 @@ import (
 
 var CCount = 0
 
-func ReplaceComponentWithHTML(filepath string) []*html.Node {
-	f, err := os.ReadFile(filepath)
-	//writeFile, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		panic(err)
-	}
+func ReplaceComponentWithHTML(f []byte) []*html.Node {
 	root, err := html.ParseFragment(strings.NewReader(string(f)), &html.Node{
 		Type:     html.ElementNode,
 		Data:     "div",
@@ -57,7 +52,12 @@ func replace(n *html.Node) {
 			// 	OutScript += script
 			// }
 			// fmt.Println(OutScript)
-			ReplaceComponentWithHTML(filepath.Join(wd, "components", n.Data+".melte"))
+			//fi, err := os.ReadFile(filepath.Join(wd, "components", n.Data+".melte"))
+			//writeFile, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0600)
+			if err != nil {
+				panic(err)
+			}
+			ReplaceComponentWithHTML(f) // adds components scripts to Scripts
 			component, err := html.ParseFragment(strings.NewReader(string(f)), &html.Node{
 				Type:     html.ElementNode,
 				Data:     "div",

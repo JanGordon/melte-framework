@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -223,9 +224,13 @@ func visitPath(path string, di fs.DirEntry, err error) error {
 	// make server better and make it work to host the html fil in th e folder if it is just a folder
 
 	dir, filename := filepath.Split(path)
-	if filepath.Ext(path) == ".html" && filename != "out.html" {
+	if filepath.Ext(path) == ".html" && filename != "out.html" && strings.HasPrefix(filename, "layout") {
 		fmt.Println("Rebuilding", path)
-		compile.BuildPage(compile.ReplaceComponentWithHTML(path), dir+"out.html", dir, false, true)
+		file, err := os.ReadFile(path)
+		if err != nil {
+			panic(err)
+		}
+		compile.BuildPage(compile.ReplaceComponentWithHTML(file), dir+"out.html", dir, false, true, true)
 	}
 	return nil
 }

@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS bool, dev bool) {
+func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS bool, dev bool, findLayouts bool) {
 	// This function should build a full html page from the list of Scripts and the component
 	//fmt.Println("Building the page: out.html and all scripts")
 	writeFile, err := os.OpenFile(outPath, os.O_WRONLY|os.O_CREATE, 0600)
@@ -21,6 +21,10 @@ func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS boo
 	}
 	importLines := ""
 	scriptExceptImports := ""
+	if findLayouts {
+		root = populateLayout(root, outPath, writeFile)
+
+	}
 	for script := range Scripts {
 
 		if inlineJS {
@@ -77,6 +81,7 @@ func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS boo
 		root = append(root, scriptDev)
 
 	}
+
 	//fmt.Println("Adding Script\n", file, root)
 	for child := range root {
 		if err = html.Render(writeFile, root[child]); err != nil {
