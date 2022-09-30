@@ -4,5 +4,5 @@
     console.log("a")
     setInterval(function() {SELF.innerText += "T"},1000)
 </script>
-<p>Hello</p>
+<p>Hello world</p>
 <w></w>

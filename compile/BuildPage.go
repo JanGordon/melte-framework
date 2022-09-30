@@ -61,7 +61,6 @@ func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS boo
 		Type:     html.ElementNode,
 		DataAtom: atom.Script,
 	}
-	fmt.Println(outPathJS)
 	scriptC.Attr = append(scriptC.Attr, html.Attribute{
 		Key: "src",
 		Val: filepath.Join(strings.Replace(outPathJS, "routes", "", 1), "out.js"),

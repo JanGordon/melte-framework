@@ -144,17 +144,17 @@ func initWatcher(path string, di fs.DirEntry, err error) error {
 		if filename == "out.html" && !stringInSlice(filepath.Join("/", strings.Replace(dir, "routes", "", 1)), Handlers) {
 			Server.GET(filepath.Join("/", strings.Replace(dir, "routes", "", 1)), routeHandler)
 			Handlers = append(Handlers, filepath.Join("/", strings.Replace(dir, "routes", "", 1)))
-			fmt.Println("Handling ", filepath.Join("/", strings.Replace(dir, "routes", "", 1)), " ", path)
+			//fmt.Println("Handling ", filepath.Join("/", strings.Replace(dir, "routes", "", 1)), " ", path)
 
 		} else if strings.HasPrefix(path, "routes") && !stringInSlice(filepath.Join("/", strings.Replace(path, "routes", "", 1)), Handlers) {
 			Server.GET(filepath.Join("/", strings.Replace(path, "routes", "", 1)), fileInRouteHandler)
 			Handlers = append(Handlers, filepath.Join("/", strings.Replace(path, "routes", "", 1)))
-			fmt.Println("Handling ", filepath.Join("/", strings.Replace(path, "routes", "", 1)), " ", path)
+			//fmt.Println("Handling ", filepath.Join("/", strings.Replace(path, "routes", "", 1)), " ", path)
 
 		} else if !stringInSlice(filepath.Join("/", path), Handlers) {
 			Server.GET(filepath.Join("/", path), otherHandler)
 			Handlers = append(Handlers, filepath.Join("/", path))
-			fmt.Println("Handling ", filepath.Join("/", path), " ", path)
+			//fmt.Println("Handling ", filepath.Join("/", path), " ", path)
 
 		}
 	}
@@ -170,23 +170,23 @@ func reBuildFull() {
 }
 
 func fileInRouteHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Println(r.URL.Path)
+	//fmt.Println(r.URL.Path)
 	p := filepath.Join("./routes", r.URL.Path)
-	fmt.Println("serving", "./routes"+r.URL.Path)
+	//fmt.Println("serving", "./routes"+r.URL.Path)
 	http.ServeFile(w, r, p)
 }
 
 func otherHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Println(r.URL.Path)
+	//fmt.Println(r.URL.Path)
 	p := filepath.Join("./", r.URL.Path)
-	fmt.Println("serving", filepath.Join("./", r.URL.Path))
+	//fmt.Println("serving", filepath.Join("./", r.URL.Path))
 	http.ServeFile(w, r, p)
 }
 
 func routeHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Println(r.URL.Path)
+	//fmt.Println(r.URL.Path)
 	p := filepath.Join("./routes", r.URL.Path, "out.html")
-	fmt.Println("serving", filepath.Join("./routes", r.URL.Path, "out.html"), " wiht routeHandler")
+	//fmt.Println("serving", filepath.Join("./routes", r.URL.Path, "out.html"), " wiht routeHandler")
 	http.ServeFile(w, r, p)
 }
 
@@ -207,30 +207,31 @@ func visitPath(path string, di fs.DirEntry, err error) error {
 		if filename == "out.html" && !stringInSlice(filepath.Join("/", strings.Replace(dir, "routes", "", 1)), Handlers) {
 			Server.GET(filepath.Join("/", strings.Replace(dir, "routes", "", 1)), routeHandler)
 			Handlers = append(Handlers, filepath.Join("/", strings.Replace(dir, "routes", "", 1)))
-			fmt.Println("Handling ", filepath.Join("/", strings.Replace(dir, "routes", "", 1)), " ", path)
+			//fmt.Println("Handling ", filepath.Join("/", strings.Replace(dir, "routes", "", 1)), " ", path)
 
 		} else if strings.HasPrefix(path, "routes") && !stringInSlice(filepath.Join("/", strings.Replace(path, "routes", "", 1)), Handlers) {
 			Server.GET(filepath.Join("/", strings.Replace(path, "routes", "", 1)), fileInRouteHandler)
 			Handlers = append(Handlers, filepath.Join("/", strings.Replace(path, "routes", "", 1)))
-			fmt.Println("Handling ", filepath.Join("/", strings.Replace(path, "routes", "", 1)), " ", path)
+			//fmt.Println("Handling ", filepath.Join("/", strings.Replace(path, "routes", "", 1)), " ", path)
 
 		} else if !stringInSlice(filepath.Join("/", path), Handlers) {
 			Server.GET(filepath.Join("/", path), otherHandler)
 			Handlers = append(Handlers, filepath.Join("/", path))
-			fmt.Println("Handling ", filepath.Join("/", path), " ", path)
+			//fmt.Println("Handling ", filepath.Join("/", path), " ", path)
 
 		}
 	}
 	// make server better and make it work to host the html fil in th e folder if it is just a folder
+	fmt.Println("Rebuilding")
 
 	dir, filename := filepath.Split(path)
-	if filepath.Ext(path) == ".html" && filename != "out.html" && strings.HasPrefix(filename, "layout") {
+	if filepath.Ext(path) == ".html" && filename != "out.html" && !strings.HasPrefix(filename, "layout") {
 		fmt.Println("Rebuilding", path)
 		file, err := os.ReadFile(path)
 		if err != nil {
 			panic(err)
 		}
-		compile.BuildPage(compile.ReplaceComponentWithHTML(file), dir+"out.html", dir, false, true, true)
+		compile.BuildPage(compile.ReplaceComponentWithHTML(file), dir+"out.html", dir, false, true, false)
 	}
 	return nil
 }

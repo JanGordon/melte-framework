@@ -43,6 +43,7 @@ func replace(n *html.Node) {
 			panic("Failed to get working directory")
 		}
 		f, err := os.ReadFile(filepath.Join(wd, "components", n.Data+".melte"))
+		// seeing if custom component exists
 		if err == nil {
 			// ComponentName := n.Data + "awdw"
 			// OutScript := ""
@@ -57,13 +58,14 @@ func replace(n *html.Node) {
 			if err != nil {
 				panic(err)
 			}
-			ReplaceComponentWithHTML(f) // adds components scripts to Scripts
+			//component := ReplaceComponentWithHTML(f) // adds components scripts to Scripts
+			//fmt.Println("Replacing component with : ", component[0].Data)
 			component, err := html.ParseFragment(strings.NewReader(string(f)), &html.Node{
 				Type:     html.ElementNode,
 				Data:     "div",
 				DataAtom: atom.Div,
 			})
-			//fmt.Println("Inserting Component...")
+			fmt.Println("Inserting Component...")
 			if err != nil {
 				panic(err)
 			}
@@ -71,7 +73,6 @@ func replace(n *html.Node) {
 				Key: "melte-id",
 				Val: n.Data + fmt.Sprintf("%d", CCount),
 			})
-			fmt.Println(CCount)
 			for node := range component {
 				if component[node].Data == "script" {
 					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+fmt.Sprintf("%d", CCount))
