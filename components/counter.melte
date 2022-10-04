@@ -1,0 +1,4 @@
+<script>
+    let count = 0;
+    $: SELF.innerText = count
+</script>
