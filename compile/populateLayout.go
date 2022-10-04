@@ -47,7 +47,7 @@ out:
 					}
 				}
 
-				// BuildPage(ReplaceComponentWithHTML(template), pagePath, dir, false, true, false)
+				BuildPage(ReplaceComponentWithHTML(template), pagePath, dir, false, true, false)
 
 				break out
 			}

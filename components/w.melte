@@ -1,2 +1,5 @@
+<script>
+console.log("Woofil" + SELF)
+</script>
 <h1>This is working!</h1>
 <h1>why twi<h1>

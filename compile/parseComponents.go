@@ -34,7 +34,7 @@ func replace(n *html.Node) {
 		if err != nil {
 			panic("Failed to get working directory")
 		}
-		f, err := os.ReadFile(filepath.Join(wd, "components", n.Data+".melte"))
+		_, err = os.ReadFile(filepath.Join(wd, "components", n.Data+".melte"))
 		// seeing if custom component exists
 		if err == nil {
 			// ComponentName := n.Data + "awdw"
@@ -50,14 +50,14 @@ func replace(n *html.Node) {
 			if err != nil {
 				panic(err)
 			}
-			//component := ReplaceComponentWithHTML(f) // adds components scripts to Scripts
+			component := ReplaceComponentWithHTML(ParseHTMLFragmentFromPath(filepath.Join(wd, "components", n.Data+".melte"))) // adds components scripts to Scripts
 			//fmt.Println("Replacing component with : ", component[0].Data)
-			component, err := html.ParseFragment(strings.NewReader(string(f)), &html.Node{
-				Type:     html.ElementNode,
-				Data:     "div",
-				DataAtom: atom.Div,
-			})
-			fmt.Println("Inserting Component...")
+			// component, err := html.ParseFragment(strings.NewReader(string(f)), &html.Node{
+			// 	Type:     html.ElementNode,
+			// 	Data:     "div",
+			// 	DataAtom: atom.Div,
+			// })
+
 			if err != nil {
 				panic(err)
 			}
@@ -74,7 +74,6 @@ func replace(n *html.Node) {
 						Data: OutScript + component[node].FirstChild.Data,
 						Type: html.TextNode,
 					}
-
 					component[node].RemoveChild(component[node].FirstChild)
 					// component[node].AppendChild(scriptComponent)
 					if err != nil {
@@ -84,6 +83,7 @@ func replace(n *html.Node) {
 					ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
 
 				} else {
+					// this is happening twice for some reason
 					n.AppendChild(component[node])
 				}
 
@@ -112,5 +112,5 @@ func ParseHTMLFragmentFromPath(path string) []*html.Node {
 	if err != nil {
 		panic(err)
 	}
-	return ReplaceComponentWithHTML(root)
+	return root
 }

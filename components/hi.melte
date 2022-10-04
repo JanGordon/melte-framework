@@ -1,8 +1,16 @@
 <script>
     import hello from "Component/app.js"
     hello()
-    console.log("a")
-    setInterval(function() {SELF.innerText += "T"},1000)
+    console.log("rerunning js ", count)
+    
+    SELF.querySelector("button").addEventListener("click", function() {
+        console.log(SELF.querySelector("button").innerText)
+        count += 1
+        SELF.querySelector("button").innerText = (count).toString()
+    })
+    SELF.querySelector("button").innerText = (count).toString()
+
 </script>
 <p>Hello world</p>
-<w></w>
+<button>0</button>
+   

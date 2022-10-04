@@ -55,11 +55,17 @@ func BuildScriptFile(script string, outDir string) {
 			".png": api.LoaderDataURL,
 			".js":  api.LoaderJS,
 		},
-		MinifyWhitespace: true,
+		// Engines: []api.Engine{
+		// 	{api.EngineChrome, "64"},
+		// 	{api.EngineFirefox, "80"},
+		// 	{api.EngineSafari, "11"},
+		// 	{api.EngineEdge, "16"},
+		// },
+		// MinifyWhitespace: true,
 
 		Platform: api.PlatformNeutral,
 	})
-	os.Remove("in.ts")
+	// os.Remove("in.ts")
 	for _, err := range result.Errors {
 		fmt.Printf("build error: %s found at %d:%d in file %s: \n %s\n suggested change: %s", err.Text, err.Location.Line, err.Location.Column, err.Location.File, err.Location.LineText, err.Location.Suggestion)
 	}

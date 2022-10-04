@@ -13,8 +13,9 @@ import (
 func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS bool, dev bool, findLayouts bool) {
 	// This function should build a full html page from the list of Scripts and the component
 	//fmt.Println("Building the page: out.html and all scripts")
+	os.Truncate(outPath, 0)
 	writeFile, err := os.OpenFile(outPath, os.O_WRONLY|os.O_CREATE, 0600)
-	writeFile.Write([]byte(""))
+
 	//newPage, err := html.Parse(strings.NewReader(string(f)))
 	if err != nil {
 		panic(err)
@@ -54,7 +55,7 @@ func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS boo
 	}
 	file := importLines + "\n" + scriptExceptImports
 	BuildScriptFile(file, filepath.Join(outPathJS, "out.js"))
-
+	fmt.Println(outPathJS)
 	scriptC := &html.Node{
 		Data:     "script",
 		Type:     html.ElementNode,
@@ -65,6 +66,25 @@ func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS boo
 		Val: filepath.Join(strings.Replace(outPathJS, "routes", "", 1), "out.js"),
 	})
 	root = append(root, scriptC)
+	flamethrower, err := os.ReadFile("./clientSideRouting/src.js")
+	if err != nil {
+		panic("error reading client side routing file")
+	}
+	BuildScriptFile(string(flamethrower), "./clientSideRouting/out.js")
+	scriptFlamethrower := &html.Node{
+		Data:     "script",
+		Type:     html.ElementNode,
+		DataAtom: atom.Script,
+	}
+	scriptFlamethrower.Attr = append(scriptFlamethrower.Attr, html.Attribute{
+		Key: "type",
+		Val: "module",
+	})
+	scriptFlamethrower.Attr = append(scriptFlamethrower.Attr, html.Attribute{
+		Key: "src",
+		Val: "/clientSideRouting/out.js",
+	})
+	root = append(root, scriptFlamethrower)
 	if dev {
 		scriptDev := &html.Node{
 			Data:     "script",

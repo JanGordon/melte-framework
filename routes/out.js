@@ -1,1 +1,17 @@
-function hello(){console.log("hello world")}{const SELF=document.querySelector("[melte-id='hi1']");hello();console.log("a");setInterval(function(){SELF.innerText+="T"},1e3)}
+// components/app.js
+function hello() {
+  console.log("hello world");
+}
+
+// in.ts
+{
+  const SELF = document.querySelector("[melte-id='hi0']");
+  hello();
+  console.log("rerunning js ", count);
+  SELF.querySelector("button").addEventListener("click", function() {
+    console.log(SELF.querySelector("button").innerText);
+    count += 1;
+    SELF.querySelector("button").innerText = count.toString();
+  });
+  SELF.querySelector("button").innerText = count.toString();
+}

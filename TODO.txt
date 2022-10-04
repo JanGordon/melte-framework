@@ -1,0 +1,17 @@
+make:
+let globalValue = "hi"
+
+
+be preserverved on route chaneg
+this should be put in inlined js in head of out.html becasue flamethrower keeps state here
+but
+var value = "hi"
+should be set to null and any code on the rout eshould be purged
+
+might have to reqrite flamethrower to allow for html fragments to preserve state
+
+to preserve html fragments across routes:
+<h1>{count}</h1>
+will work by searching through html tree for these and then replace before loading
+this means that the page will not have layout shift and will be quick
+during this time, a mutuation observer should be added to this varibale and should be updated whenever varibale chnages.
