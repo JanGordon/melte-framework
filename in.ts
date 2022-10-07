@@ -1,2 +1,9 @@
-import flamethrower from './node_modules/flamethrower-router/dist/main.js';
-const router = flamethrower({ prefetch: 'visible', log: false, pageTransitions: false });
+    import hello from "Component/app.js"
+
+{
+// script for outout-counter0.js.js
+ const SELF = document.querySelector("[melte-id='counter0']")
+    let count = 0;
+    $: SELF.innerText = count
+
+}

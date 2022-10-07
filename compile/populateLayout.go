@@ -8,10 +8,9 @@ import (
 	"strings"
 
 	"golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
 )
 
-func populateLayout(page []*html.Node, pagePath string, writeFile *os.File) []*html.Node {
+func populateLayout(page html.Node, pagePath string, writeFile *os.File) html.Node {
 	dir := pagePath
 	fmt.Println("The path is :", dir)
 out:
@@ -30,24 +29,30 @@ out:
 			if !f.IsDir() && strings.HasPrefix(f.Name(), "layout") {
 				tFile, err := os.ReadFile(pagePath)
 				fmt.Println("Layout template found: ", filepath.Join(dir, f.Name()))
-				template, err := html.ParseFragment(strings.NewReader(string(tFile)), &html.Node{
-					Type:     html.ElementNode,
-					Data:     "div",
-					DataAtom: atom.Div,
-				})
+				template, err := html.Parse(strings.NewReader(string(tFile)))
 				if err != nil {
 					panic(err)
 				}
 
-				for _, child := range template {
+				child := template.FirstChild
+				lastChild := template.LastChild
+				for {
 					foundSlot := replaceSlot(child, page)
 					if foundSlot {
 						fmt.Println("replaced slot with code")
 						break
 					}
+					if child != lastChild {
+						child = child.NextSibling
+					} else {
+						break
+					}
+					// if err = html.Render(writeFile, root[child]); err != nil {
+					// 	panic(err)
+					// }
 				}
 
-				BuildPage(ReplaceComponentWithHTML(template), pagePath, dir, false, true, false)
+				BuildPage(ReplaceComponentWithHTML(*template), pagePath, dir, false, true, false)
 
 				break out
 			}
@@ -57,11 +62,21 @@ out:
 	return page
 }
 
-func replaceSlot(n *html.Node, page []*html.Node) bool {
+func replaceSlot(n *html.Node, page html.Node) bool {
 	if n.Data == "slot" {
-		for _, child := range page {
+		child := n.FirstChild
+		lastChild := n.LastChild
+		for {
 			newChild := child
 			n.Parent.AppendChild(newChild)
+			if child != lastChild {
+				child = child.NextSibling
+			} else {
+				break
+			}
+			// if err = html.Render(writeFile, root[child]); err != nil {
+			// 	panic(err)
+			// }
 		}
 		n.Parent.RemoveChild(n)
 		return true

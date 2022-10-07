@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS bool, dev bool, findLayouts bool) {
+func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, dev bool, findLayouts bool) {
 	// This function should build a full html page from the list of Scripts and the component
 	//fmt.Println("Building the page: out.html and all scripts")
 	os.Truncate(outPath, 0)
@@ -35,21 +35,33 @@ func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS boo
 			}
 			Scripts[script].Data = TransformScript(Scripts[script].Data)
 			scriptC.AppendChild(&Scripts[script])
-			root = append(root, scriptC)
+			root.AppendChild(scriptC)
 			//fmt.Println("Adding Script", Scripts)
 		} else {
 			importRemovedLines := ""
 			lines := strings.Split(Scripts[script].Data, "\n")
-			for _, line := range lines {
+			for i, line := range lines {
 				if strings.HasPrefix(strings.TrimSpace(line), "import") {
 					importLines += fmt.Sprintf("%s\n", line)
+				} else if strings.HasPrefix(strings.TrimSpace(line), "//@melte-custom:") {
+					args := strings.Split(string(strings.Replace(string(strings.TrimSpace(line)), "//@melte-custom: ", "", 1)), ",")
+					// found a custom declaration
+					// get type
+					if strings.TrimSpace((args[0])) == "var" {
+						//varDeclaration := lines[i+1]
+						// put in head if should'nt be reloaded on page change
+						lines[i+1] = ""
+						if stringInSlice("server", args) {
+
+						}
+					}
 				} else {
 					importRemovedLines += line + "\n"
 				}
 			}
+
 			scriptExceptImports = fmt.Sprintf("{\n// script for %s\n %s}", fmt.Sprintf("out%s.js", ScriptIDs[script]), importRemovedLines)
 		}
-
 		// newPage.AppendChild(scriptC)
 
 	}
@@ -65,12 +77,7 @@ func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS boo
 		Key: "src",
 		Val: filepath.Join(strings.Replace(outPathJS, "routes", "", 1), "out.js"),
 	})
-	root = append(root, scriptC)
-	flamethrower, err := os.ReadFile("./clientSideRouting/src.js")
-	if err != nil {
-		panic("error reading client side routing file")
-	}
-	BuildScriptFile(string(flamethrower), "./clientSideRouting/out.js")
+	root.AppendChild(scriptC)
 	scriptFlamethrower := &html.Node{
 		Data:     "script",
 		Type:     html.ElementNode,
@@ -82,9 +89,9 @@ func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS boo
 	})
 	scriptFlamethrower.Attr = append(scriptFlamethrower.Attr, html.Attribute{
 		Key: "src",
-		Val: "/clientSideRouting/out.js",
+		Val: "/clientSideRouting/src.js",
 	})
-	root = append(root, scriptFlamethrower)
+	root.AppendChild(scriptFlamethrower)
 	if dev {
 		scriptDev := &html.Node{
 			Data:     "script",
@@ -96,14 +103,21 @@ func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS boo
 			Key: "src",
 			Val: "/hotReload/WebSocket.js",
 		})
-		root = append(root, scriptDev)
+		root.AppendChild(scriptDev)
 
 	}
 
 	//fmt.Println("Adding Script\n", file, root)
-	for child := range root {
-		if err = html.Render(writeFile, root[child]); err != nil {
+	child := root.FirstChild
+	lastChild := root.LastChild
+	for {
+		if err = html.Render(writeFile, child); err != nil {
 			panic(err)
+		}
+		if child != lastChild {
+			child = child.NextSibling
+		} else {
+			break
 		}
 	}
 	Scripts = nil
@@ -112,4 +126,13 @@ func BuildPage(root []*html.Node, outPath string, outPathJS string, inlineJS boo
 	//fmt.Println(len(Scripts))
 	//f, err := os.ReadFile(filepath.Join(outPathJS, "out.js"))
 	//fmt.Println(string(f))
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }

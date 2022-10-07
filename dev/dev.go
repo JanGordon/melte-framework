@@ -24,6 +24,7 @@ var wConn = 0
 
 func hotReloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// Upgrade upgrades the HTTP server connection to the WebSocket protocol.
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("upgrade failed: ", err)
@@ -70,7 +71,7 @@ func Run(port int) {
 	err = watcher.Add("./hotReload")
 	err = filepath.WalkDir("./hotReload", initWatcher)
 	err = filepath.WalkDir("./routes", initWatcher)
-	Server.GET("/clientSideRouting/out.js", otherHandler)
+	Server.GET("/clientSideRouting/src.js", otherHandler)
 	Server.GET("/hotReloadWS", hotReloadHandler)
 	RunServer(Server)
 

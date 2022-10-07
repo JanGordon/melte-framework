@@ -12,10 +12,29 @@ import (
 
 var CCount = 0
 
-func ReplaceComponentWithHTML(root []*html.Node) []*html.Node {
+func ReplaceComponentWithHTML(root html.Node) html.Node {
 	CCount++
-	for child := range root {
-		replace(root[child])
+	child := root.FirstChild
+	lastChild := root.LastChild
+	for {
+		replace(child)
+		if child != lastChild {
+			child = child.NextSibling
+		} else {
+			break
+		}
+		// if err = html.Render(writeFile, root[child]); err != nil {
+		// 	panic(err)
+		// }
+	}
+	CCount = 0
+	return root
+}
+
+func ReplaceCustomComponentWithHTML(root []*html.Node) []*html.Node {
+	for _, child := range root {
+		replace(child)
+		CCount++
 
 		// if err = html.Render(writeFile, root[child]); err != nil {
 		// 	panic(err)
@@ -50,7 +69,7 @@ func replace(n *html.Node) {
 			if err != nil {
 				panic(err)
 			}
-			component := ReplaceComponentWithHTML(ParseHTMLFragmentFromPath(filepath.Join(wd, "components", n.Data+".melte"))) // adds components scripts to Scripts
+			component := ReplaceCustomComponentWithHTML(ParseHTMLAsComponent(filepath.Join(wd, "components", n.Data+".melte"))) // adds components scripts to Scripts
 			//fmt.Println("Replacing component with : ", component[0].Data)
 			// component, err := html.ParseFragment(strings.NewReader(string(f)), &html.Node{
 			// 	Type:     html.ElementNode,
@@ -65,16 +84,17 @@ func replace(n *html.Node) {
 				Key: "melte-id",
 				Val: n.Data + fmt.Sprintf("%d", CCount),
 			})
-			for node := range component {
-				if component[node].Data == "script" {
+			fmt.Println("Component : ", component)
+			for _, child := range component {
+				if child.Data == "script" {
 					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+fmt.Sprintf("%d", CCount))
 					// We need to move the script to end and add module tag
 
 					scriptComponent := &html.Node{
-						Data: OutScript + component[node].FirstChild.Data,
+						Data: OutScript + child.FirstChild.Data,
 						Type: html.TextNode,
 					}
-					component[node].RemoveChild(component[node].FirstChild)
+					child.RemoveChild(child.FirstChild)
 					// component[node].AppendChild(scriptComponent)
 					if err != nil {
 						panic(err)
@@ -84,9 +104,12 @@ func replace(n *html.Node) {
 
 				} else {
 					// this is happening twice for some reason
-					n.AppendChild(component[node])
+					fmt.Println(child.Data, ": adding component node")
+					n.AppendChild(child)
 				}
-
+				// if err = html.Render(writeFile, root[child]); err != nil {
+				// 	panic(err)
+				// }
 			}
 
 			// node := html.Node()
@@ -98,19 +121,40 @@ func replace(n *html.Node) {
 	}
 }
 
-func ParseHTMLFragmentFromPath(path string) []*html.Node {
+func ParseHTMLFragmentFromPath(path string) html.Node {
 	//do what old replacehtml did
 	file, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
-	root, err := html.ParseFragment(strings.NewReader(string(file)), &html.Node{
-		Type:     html.ElementNode,
-		Data:     "div",
-		DataAtom: atom.Div,
-	})
+	root, err := html.Parse(strings.NewReader(string(file)))
 	if err != nil {
 		panic(err)
 	}
-	return root
+	return *root
+}
+
+func ParseHTMLAsComponent(path string) []*html.Node {
+	//do what old replacehtml did
+	file, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	rootList, err := html.ParseFragment(strings.NewReader(string(file)), &html.Node{
+		Data:     "div",
+		DataAtom: atom.Div,
+		Type:     html.ElementNode,
+	})
+	if err != nil {
+		panic("failed to parse component")
+	}
+	// root := &html.Node{
+	// 	Data:     "div",
+	// 	DataAtom: atom.Div,
+	// 	Type:     html.ElementNode,
+	// }
+	// for _, n := range rootList {
+
+	// }
+	return rootList
 }
