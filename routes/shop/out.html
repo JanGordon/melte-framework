@@ -7,7 +7,7 @@
         console.log("REloading js")
         let count = 0
     </script>
-</head>
+<script type="module" src="/clientSideRouting/src.js"></script><script src="/hotReload/WebSocket.js"></script></head>
 <body>
     Woof
     
@@ -18,6 +18,6 @@
    </hi>
 
     <!-- If i have counter then it should be able to use globally state kept varibales between routes -->
-    <counter val="{count}" melte-id="counter0"></counter>
+    <!-- <counter val={count}></counter> -->
 
-</body></html><script src="/shop/out.js"></script><script type="module" src="/clientSideRouting/src.js"></script><script src="/hotReload/WebSocket.js"></script>
+</body><script src="/shop/out.js"></script></html>

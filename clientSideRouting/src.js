@@ -28,9 +28,21 @@ Array(document.querySelectorAll("a")).forEach(function(link, index) {
             var response = caches[url]
             const parse = Range.prototype.createContextualFragment.bind(document.createRange());
             var doc = document.implementation.createHTMLDocument();
-            doc.body.innerHTML = "Hello my nane is jan"
-            console.log("Loading cached page")
+            doc.documentElement.innerHTML = response
+            console.log("Loading cached page", response)
             document.body.innerHTML = doc.body.innerHTML
+            history.replaceState( {} , doc.title, l.href );
+            document.body.querySelectorAll("script").forEach(function (script) {
+                if (script.src.includes("out.js")) {
+                    var newSrc = new URL(script.src.slice(0, script.src.indexOf("out.js")))
+                    var newScript = document.createElement("script")
+                    script.parentNode.appendChild(newScript)
+                    script.remove()
+                    newScript.src = newSrc.pathname + "out.js?cachebuster="+ new Date().getTime()
+                    console.log(newSrc.pathname + "out.js?cachebuster="+ new Date().getTime())
+                }
+                console.log("reloading scripts")
+            })
         } else {
             console.log("Page hasn't been cached, loading...")
             await fetch(url)
@@ -39,7 +51,9 @@ Array(document.querySelectorAll("a")).forEach(function(link, index) {
             }).then(function(data) {
                 caches[url] = data
                 var doc = document.implementation.createHTMLDocument();
-                doc.querySelector("html").innerHTML = response
+                doc.documentElement.innerHTML = response
+                document.body.innerHTML = doc.body.innerHTML
+                history.replaceState( {} , doc.title, l.href );
         
             })
         }
@@ -64,9 +78,7 @@ Array(document.querySelectorAll("a")).forEach(function(link, index) {
 
         }
 
-        history.replaceState( {} , doc.title, l.href );
-        document.querySelector("body").innerHTML = doc.body.innerHTML
-
+        
     })
 })
 //listen for chnages in dom and see if links have been modified or added

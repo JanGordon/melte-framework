@@ -77,7 +77,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 		Key: "src",
 		Val: filepath.Join(strings.Replace(outPathJS, "routes", "", 1), "out.js"),
 	})
-	root.AppendChild(scriptC)
+	root.LastChild.AppendChild(scriptC)
 	scriptFlamethrower := &html.Node{
 		Data:     "script",
 		Type:     html.ElementNode,
@@ -91,7 +91,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 		Key: "src",
 		Val: "/clientSideRouting/src.js",
 	})
-	root.AppendChild(scriptFlamethrower)
+	root.LastChild.FirstChild.AppendChild(scriptFlamethrower)
 	if dev {
 		scriptDev := &html.Node{
 			Data:     "script",
@@ -103,7 +103,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 			Key: "src",
 			Val: "/hotReload/WebSocket.js",
 		})
-		root.AppendChild(scriptDev)
+		root.LastChild.FirstChild.AppendChild(scriptDev)
 
 	}
 
