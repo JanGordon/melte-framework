@@ -9,7 +9,7 @@
         SELF.querySelector("button").innerText = (count).toString()
     })
     SELF.querySelector("button").innerText = (count).toString()
-
+    
 </script>
 <p>Hello world</p>
 <button>0</button>
