@@ -66,11 +66,11 @@ func hotReloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 }
 func Run(port int) {
 	fmt.Println("Starting server and wathcing for file changes")
-	err := watcher.Add(filepath.Join(cwd, "./"))
-	err = watcher.Add(filepath.Join(cwd, "./components"))
-	err = watcher.Add(filepath.Join(cwd, "./hotReload"))
-	err = filepath.WalkDir(filepath.Join(cwd, "./hotReload"), initWatcher)
-	err = filepath.WalkDir(filepath.Join(cwd, "./routes"), initWatcher)
+	err := watcher.Add("./")
+	err = watcher.Add("./components")
+	err = watcher.Add("./hotReload")
+	err = filepath.WalkDir("./hotReload", initWatcher)
+	err = filepath.WalkDir("./routes", initWatcher)
 	Server.GET("/clientSideRouting/src.js", otherHandler)
 	Server.GET("/hotReloadWS", hotReloadHandler)
 	RunServer(Server)
@@ -228,21 +228,21 @@ func reBuildFull() {
 
 func fileInRouteHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//fmt.Println(r.URL.Path)
-	p := filepath.Join(cwd, "/routes", r.URL.Path)
+	p := filepath.Join("./routes", r.URL.Path)
 	fmt.Println("serving", "./routes"+r.URL.Path)
 	http.ServeFile(w, r, p)
 }
 
 func otherHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//fmt.Println(r.URL.Path)
-	p := filepath.Join(cwd, "./", r.URL.Path)
+	p := filepath.Join("./", r.URL.Path)
 	fmt.Println("serving", filepath.Join("./", r.URL.Path))
 	http.ServeFile(w, r, p)
 }
 
 func routeHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//fmt.Println(r.URL.Path)
-	p := filepath.Join(cwd, "./routes", r.URL.Path, "out.html")
+	p := filepath.Join("./routes", r.URL.Path, "out.html")
 	fmt.Println("serving", filepath.Join("./routes", r.URL.Path, "out.html"), " wiht routeHandler")
 	http.ServeFile(w, r, p)
 }
