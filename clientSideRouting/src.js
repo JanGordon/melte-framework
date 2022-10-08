@@ -4,6 +4,7 @@ var caches = {};
 
 async function cacheAllLinks() {
     var links = Array(document.querySelectorAll("a"))
+    console.log("caching new links...")
     for (let link of links) {
         console.log(links, link)
         var l = link[0]
@@ -14,72 +15,76 @@ async function cacheAllLinks() {
         }).then(function(data) {
             caches[url] = data
         })
+
+
+        link[0].addEventListener("click", async function(e) {
+            e.preventDefault();
+            var l = link[0]
+            if (caches.hasOwnProperty(l)) {
+                let url = new URL(l.href)
+                var response = caches[url]
+                const parse = Range.prototype.createContextualFragment.bind(document.createRange());
+                var doc = document.implementation.createHTMLDocument();
+                doc.documentElement.innerHTML = response
+                console.log("Loading cached page", response)
+                document.body.innerHTML = doc.body.innerHTML
+                history.replaceState( {} , doc.title, l.href );
+                document.body.querySelectorAll("script").forEach(function (script) {
+                    if (script.src.includes("out.js")) {
+                        var newSrc = new URL(script.src.slice(0, script.src.indexOf("out.js")))
+                        var newScript = document.createElement("script")
+                        script.parentNode.appendChild(newScript)
+                        script.remove()
+                        newScript.src = newSrc.pathname + "out.js?cachebuster="+ new Date().getTime()
+                        console.log(newSrc.pathname + "out.js?cachebuster="+ new Date().getTime())
+                    }
+                })
+                cacheAllLinks()
+            } else {
+                setTimeout(()=>{console.log("Page hasn't been cached, loading...")}, 1000)
+                await fetch(url)
+                .then(function(response) {
+                    return response.text()
+                }).then(function(data) {
+                    caches[url] = data
+                    var doc = document.implementation.createHTMLDocument();
+                    doc.documentElement.innerHTML = response
+                    document.body.innerHTML = doc.body.innerHTML
+                    history.replaceState( {} , doc.title, l.href );
+                    cacheAllLinks()
+                })
+            }
+    
+            {var hello = "hello"}
+            {console.log(hello)}
+            // should html frags be replaced server side with every request and updated wiht js or 
+            // js do everything
+            //both
+            //make state kept variables opt in to sevrer hydration
+            // all compoennt scripts should be removed for new page
+            // scripts can be rerun on every state using the popstate event
+            //defien custom variable like this
+            
+            //@melte-custom: var abs, global, server
+            var hello = "hello"
+            
+            //define on var change:
+    
+            //@melte-custom: function change, hello
+            function onChange () {
+    
+            }
+    
+            
+        })
     }
 }
 
 // add vent lister for all links and prevent default even if lniks are still loading
 Array(document.querySelectorAll("a")).forEach(function(link, index) {
     
-    link[index].addEventListener("click", async function(e) {
-        e.preventDefault();
-        var l = link[0]
-        if (caches.hasOwnProperty(l)) {
-            let url = new URL(l.href)
-            var response = caches[url]
-            const parse = Range.prototype.createContextualFragment.bind(document.createRange());
-            var doc = document.implementation.createHTMLDocument();
-            doc.documentElement.innerHTML = response
-            console.log("Loading cached page", response)
-            document.body.innerHTML = doc.body.innerHTML
-            history.replaceState( {} , doc.title, l.href );
-            document.body.querySelectorAll("script").forEach(function (script) {
-                if (script.src.includes("out.js")) {
-                    var newSrc = new URL(script.src.slice(0, script.src.indexOf("out.js")))
-                    var newScript = document.createElement("script")
-                    script.parentNode.appendChild(newScript)
-                    script.remove()
-                    newScript.src = newSrc.pathname + "out.js?cachebuster="+ new Date().getTime()
-                    console.log(newSrc.pathname + "out.js?cachebuster="+ new Date().getTime())
-                }
-                console.log("reloading scripts")
-            })
-        } else {
-            console.log("Page hasn't been cached, loading...")
-            await fetch(url)
-            .then(function(response) {
-                return response.text()
-            }).then(function(data) {
-                caches[url] = data
-                var doc = document.implementation.createHTMLDocument();
-                doc.documentElement.innerHTML = response
-                document.body.innerHTML = doc.body.innerHTML
-                history.replaceState( {} , doc.title, l.href );
-        
-            })
-        }
-
-        {var hello = "hello"}
-        {console.log(hello)}
-        // should html frags be replaced server side with every request and updated wiht js or 
-        // js do everything
-        //both
-        //make state kept variables opt in to sevrer hydration
-        // all compoennt scripts should be removed for new page
-        // scripts can be rerun on every state using the popstate event
-        //defien custom variable like this
-        
-        //@melte-custom: var abs, global, server
-        var hello = "hello"
-        
-        //define on var change:
-
-        //@melte-custom: function change, hello
-        function onChange () {
-
-        }
-
-        
-    })
+    
 })
 //listen for chnages in dom and see if links have been modified or added
+window.addEventListener("popstate", cacheAllLinks)
 cacheAllLinks()
