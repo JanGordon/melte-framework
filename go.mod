@@ -1,4 +1,4 @@
-module github.com/JanGordon/melte
+module github.com/JanGordon/melte-framework
 
 go 1.19
 

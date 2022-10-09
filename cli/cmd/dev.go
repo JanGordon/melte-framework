@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/JanGordon/melte/dev"
+	"github.com/JanGordon/melte-framework/dev"
 	"github.com/spf13/cobra"
 )
 

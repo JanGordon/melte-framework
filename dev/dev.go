@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/JanGordon/melte/compile"
+	"github.com/JanGordon/melte-framework/compile"
 	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
@@ -191,6 +191,7 @@ func reBuildChunk(dir string) {
 
 func initWatcher(path string, di fs.DirEntry, err error) error {
 	if di.IsDir() && !stringInSlice(path, watcher.WatchList()) {
+		fmt.Println("watching ", path)
 		err = watcher.Add(path)
 		if err != nil {
 			log.Fatal("Add failed:", err)

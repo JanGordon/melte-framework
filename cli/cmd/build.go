@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/JanGordon/melte/compile"
+	"github.com/JanGordon/melte-framework/compile"
 )
 
 var buildCmd = &cobra.Command{

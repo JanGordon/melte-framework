@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/JanGordon/melte/cli"
+	"github.com/JanGordon/melte-framework/cli"
 )
 
 func main() {

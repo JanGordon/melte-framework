@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"github.com/JanGordon/melte/cli/cmd"
+	"github.com/JanGordon/melte-framework/cli/cmd"
 )
 
 func Start() {
