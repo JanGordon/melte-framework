@@ -65,13 +65,15 @@ func hotReloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 	}
 }
 func Run(port int) {
-	fmt.Println("Starting server and wathcing for file changes")
-	err := watcher.Add("./")
-	err = watcher.Add("./components")
-	err = watcher.Add("./hotReload")
-	err = filepath.WalkDir("./hotReload", initWatcher)
-	err = filepath.WalkDir("./routes", initWatcher)
-	Server.GET("/clientSideRouting/src.js", otherHandler)
+	fmt.Println("Starting server and wathcing for file changes in :", cwd)
+	err := watcher.Add(cwd)
+	// err = watcher.Add(cwd + "/components")
+	// err = watcher.Add("./hotReload")
+	err = filepath.WalkDir(cwd, initWatcher)
+	// err = filepath.WalkDir(cwd+"/hotReload", initWatcher)
+	// err = filepath.WalkDir(cwd+"/routes", initWatcher)
+	Server.GET("/clientSideRouting/src.js", devHandler)
+	Server.GET("/hotReload/WebSocket.js", devHandler)
 	Server.GET("/hotReloadWS", hotReloadHandler)
 	RunServer(Server)
 
@@ -199,20 +201,22 @@ func initWatcher(path string, di fs.DirEntry, err error) error {
 	}
 	if !di.IsDir() {
 		dir, filename := filepath.Split(path)
+		dir = strings.Replace(dir, cwd, "", 1)
+		//fmt.Println("dir : ", dir+filename, " has prefix : ", strings.HasPrefix(dir, "/routes"), " is in handlers : ", !stringInSlice(filepath.Join("/", strings.Replace(dir, "/routes", "", 1)), Handlers), " route : ", filepath.Join("/", strings.Replace(dir, "/routes", "", 1)))
 		if filename == "out.html" && !stringInSlice(filepath.Join("/", strings.Replace(dir, "routes", "", 1)), Handlers) {
 			Server.GET(filepath.Join("/", strings.Replace(dir, "routes", "", 1)), routeHandler)
 			Handlers = append(Handlers, filepath.Join("/", strings.Replace(dir, "routes", "", 1)))
-			//fmt.Println("Handling ", filepath.Join("/", strings.Replace(dir, "routes", "", 1)), " ", path)
+			//fmt.Println("route Handling ", filepath.Join("/", strings.Replace(dir, "routes", "", 1)), " ", path)
 
-		} else if strings.HasPrefix(path, "routes") && !stringInSlice(filepath.Join("/", strings.Replace(path, "routes", "", 1)), Handlers) {
-			Server.GET(filepath.Join("/", strings.Replace(path, "routes", "", 1)), fileInRouteHandler)
-			Handlers = append(Handlers, filepath.Join("/", strings.Replace(path, "routes", "", 1)))
-			//fmt.Println("Handling ", filepath.Join("/", strings.Replace(path, "routes", "", 1)), " ", path)
+		} else if strings.HasPrefix(dir, "/routes") && !stringInSlice(filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), Handlers) {
+			Server.GET(filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), fileInRouteHandler)
+			Handlers = append(Handlers, filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename))
+			//fmt.Println("fileinRoute Handling ", filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), " ", path)
 
-		} else if !stringInSlice(filepath.Join("/", path), Handlers) {
-			Server.GET(filepath.Join("/", path), otherHandler)
-			Handlers = append(Handlers, filepath.Join("/", path))
-			//fmt.Println("Handling ", filepath.Join("/", path), " ", path)
+		} else if !stringInSlice(filepath.Join("/r", dir, filename), Handlers) {
+			Server.GET(filepath.Join("/r", dir, filename), otherHandler)
+			Handlers = append(Handlers, filepath.Join("/r", dir, filename))
+			//fmt.Println("other Handling ", filepath.Join("/r", dir, filename), " ", path)
 
 		}
 	}
@@ -229,21 +233,28 @@ func reBuildFull() {
 
 func fileInRouteHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//fmt.Println(r.URL.Path)
-	p := filepath.Join("./routes", r.URL.Path)
-	fmt.Println("serving", "./routes"+r.URL.Path)
+	p := filepath.Join(cwd, "/routes", r.URL.Path)
+	fmt.Println("serving", "./routes"+r.URL.Path, " with file in route handler")
 	http.ServeFile(w, r, p)
 }
 
 func otherHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//fmt.Println(r.URL.Path)
+	p := filepath.Join(cwd, r.URL.Path)
+	fmt.Println("serving", filepath.Join("./", r.URL.Path), " with other handler")
+	http.ServeFile(w, r, p)
+}
+
+func devHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	//fmt.Println(r.URL.Path)
 	p := filepath.Join("./", r.URL.Path)
-	fmt.Println("serving", filepath.Join("./", r.URL.Path))
+	fmt.Println("serving", filepath.Join("./", r.URL.Path), " with other handler")
 	http.ServeFile(w, r, p)
 }
 
 func routeHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//fmt.Println(r.URL.Path)
-	p := filepath.Join("./routes", r.URL.Path, "out.html")
+	p := filepath.Join(cwd, "/routes", r.URL.Path, "out.html")
 	fmt.Println("serving", filepath.Join("./routes", r.URL.Path, "out.html"), " wiht routeHandler")
 	http.ServeFile(w, r, p)
 }
@@ -253,8 +264,8 @@ func goHandler() {
 }
 
 func visitPath(path string, di fs.DirEntry, err error) error {
-	//filename := filepath.Base(path)
 	if di.IsDir() && !stringInSlice(path, watcher.WatchList()) {
+		fmt.Println("watching ", path)
 		err = watcher.Add(path)
 		if err != nil {
 			log.Fatal("Add failed:", err)
@@ -262,20 +273,22 @@ func visitPath(path string, di fs.DirEntry, err error) error {
 	}
 	if !di.IsDir() {
 		dir, filename := filepath.Split(path)
+		dir = strings.Replace(dir, cwd, "", 1)
+		//fmt.Println("dir : ", dir+filename, " has prefix : ", strings.HasPrefix(dir, "/routes"), " is in handlers : ", !stringInSlice(filepath.Join("/", strings.Replace(dir, "/routes", "", 1)), Handlers), " route : ", filepath.Join("/", strings.Replace(dir, "/routes", "", 1)))
 		if filename == "out.html" && !stringInSlice(filepath.Join("/", strings.Replace(dir, "routes", "", 1)), Handlers) {
 			Server.GET(filepath.Join("/", strings.Replace(dir, "routes", "", 1)), routeHandler)
 			Handlers = append(Handlers, filepath.Join("/", strings.Replace(dir, "routes", "", 1)))
-			//fmt.Println("Handling ", filepath.Join("/", strings.Replace(dir, "routes", "", 1)), " ", path)
+			//fmt.Println("route Handling ", filepath.Join("/", strings.Replace(dir, "routes", "", 1)), " ", path)
 
-		} else if strings.HasPrefix(path, "routes") && !stringInSlice(filepath.Join("/", strings.Replace(path, "routes", "", 1)), Handlers) {
-			Server.GET(filepath.Join("/", strings.Replace(path, "routes", "", 1)), fileInRouteHandler)
-			Handlers = append(Handlers, filepath.Join("/", strings.Replace(path, "routes", "", 1)))
-			//fmt.Println("Handling ", filepath.Join("/", strings.Replace(path, "routes", "", 1)), " ", path)
+		} else if strings.HasPrefix(dir, "/routes") && !stringInSlice(filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), Handlers) {
+			Server.GET(filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), fileInRouteHandler)
+			Handlers = append(Handlers, filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename))
+			//fmt.Println("fileinRoute Handling ", filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), " ", path)
 
-		} else if !stringInSlice(filepath.Join("/", path), Handlers) {
-			Server.GET(filepath.Join("/", path), otherHandler)
-			Handlers = append(Handlers, filepath.Join("/", path))
-			//fmt.Println("Handling ", filepath.Join("/", path), " ", path)
+		} else if !stringInSlice(filepath.Join("/r", dir, filename), Handlers) {
+			Server.GET(filepath.Join("/r", dir, filename), otherHandler)
+			Handlers = append(Handlers, filepath.Join("/r", dir, filename))
+			//fmt.Println("other Handling ", filepath.Join("/r", dir, filename), " ", path)
 
 		}
 	}
