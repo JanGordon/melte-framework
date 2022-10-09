@@ -65,7 +65,6 @@ func hotReloadHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Param
 	}
 }
 func Run(port int) {
-	fmt.Println("Starting server and wathcing for file changes in :", cwd)
 	err := watcher.Add(cwd)
 	// err = watcher.Add(cwd + "/components")
 	// err = watcher.Add("./hotReload")
@@ -75,6 +74,9 @@ func Run(port int) {
 	Server.GET("/clientSideRouting/src.js", devHandler)
 	Server.GET("/hotReload/WebSocket.js", devHandler)
 	Server.GET("/hotReloadWS", hotReloadHandler)
+	fmt.Println("Staring dev server...")
+	fmt.Println("connect to http://127.0.0.1:8080/ to begin live rebuild")
+
 	RunServer(Server)
 
 	if err != nil {
@@ -98,7 +100,6 @@ func runS(conn *websocket.Conn, message []byte, mt int) {
 	//server
 
 	done := make(chan bool)
-	fmt.Println("Staring dev server... watching for file changes")
 	go func() {
 		defer close(done)
 
@@ -193,7 +194,6 @@ func reBuildChunk(dir string) {
 
 func initWatcher(path string, di fs.DirEntry, err error) error {
 	if di.IsDir() && !stringInSlice(path, watcher.WatchList()) {
-		fmt.Println("watching ", path)
 		err = watcher.Add(path)
 		if err != nil {
 			log.Fatal("Add failed:", err)
@@ -265,7 +265,6 @@ func goHandler() {
 
 func visitPath(path string, di fs.DirEntry, err error) error {
 	if di.IsDir() && !stringInSlice(path, watcher.WatchList()) {
-		fmt.Println("watching ", path)
 		err = watcher.Add(path)
 		if err != nil {
 			log.Fatal("Add failed:", err)
