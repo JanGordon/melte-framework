@@ -65,6 +65,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 		// newPage.AppendChild(scriptC)
 
 	}
+	cwd, err := os.Getwd()
 	file := importLines + "\n" + scriptExceptImports
 	BuildScriptFile(file, filepath.Join(outPathJS, "out.js"))
 	fmt.Println(outPathJS)
@@ -75,7 +76,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 	}
 	scriptC.Attr = append(scriptC.Attr, html.Attribute{
 		Key: "src",
-		Val: filepath.Join(strings.Replace(outPathJS, "routes", "", 1), "out.js"),
+		Val: filepath.Join(strings.Replace(strings.Replace(outPathJS, cwd, "", 1), "routes", "", 1), "out.js"),
 	})
 	root.LastChild.AppendChild(scriptC)
 	scriptFlamethrower := &html.Node{

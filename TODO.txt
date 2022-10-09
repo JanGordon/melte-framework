@@ -26,3 +26,5 @@ run this evert time page is loaded
 
 
 current working directory should be used to make it work anywhere
+
+rebuild on first load of dev server and make it live reload wihtout websocket connection

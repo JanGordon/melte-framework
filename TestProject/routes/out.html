@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Document</title>
+<script type="module" src="/clientSideRouting/src.js"></script><script src="/hotReload/WebSocket.js"></script></head>
+<body>
+    <script type="module">
+        import updateValue from "melte"
+        function dataBaseGet() {
+            //get stuff from the database
+            return []
+        }
+        let postsData = dataBaseGet()
+        function addPost() {
+            await fetch('/api/add');
+            updateValue(postsData)
+            //By updating the value of postsData, melte will update the content in the dom
+            // You could also do this by simply like so:
+            postsData = postsData
+            // But in this case we need to fully update the varible like so:
+            postsDatabase = dataBaseGet()
+        }
+
+        // You can listen to variable changes like svelte:
+        
+        
+        function _ ()
+        
+        
+    </script>
+    <!-- Mutation obserevr for variables -->
+    <!-- Root of the project. This file could be the following:
+        index.html
+        index.js
+        index.ts
+        index.go
+        index.melte
+    -->
+
+    <!-- 
+        This file should fetch all the stories from the database wiht their ids
+        -->
+     {# for post in postsData}
+        <p>{post}</p>
+        <a href="/posts/{post.id}"></a>
+    {# endfor}
+    
+     <a onclick="()=&gt;{addPost()}">Add</a>
+     <!-- Run js after add is done  -->
+
+     <!-- This should probaly all be in acompnent  -->
+
+</body><script src="/out.js"></script></html>
