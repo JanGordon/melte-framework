@@ -15,3 +15,14 @@ to preserve html fragments across routes:
 will work by searching through html tree for these and then replace before loading
 this means that the page will not have layout shift and will be quick
 during this time, a mutuation observer should be added to this varibale and should be updated whenever varibale chnages.
+
+
+dynamic routes need to be added:
+[hello].html
+every time page is loaded rebuild [hello].html or just have js that extracts it and sets the varibale, "hello" to it
+
+[handler].go
+run this evert time page is loaded
+
+
+current working directory should be used to make it work anywhere
