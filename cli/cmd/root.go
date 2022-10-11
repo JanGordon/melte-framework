@@ -20,7 +20,7 @@ melte writes code with you without any of the boilerplate that come with most mo
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "Whoops. There was an error while executing your CLI '%s'", err)
+		fmt.Fprintf(os.Stderr, "Whoops. There was an error while executing melte '%s'", err)
 		os.Exit(1)
 	}
 }

@@ -51,40 +51,19 @@ func replace(n *html.Node) {
 	if n.Type == html.ElementNode {
 		wd, err := os.Getwd()
 		if err != nil {
-			panic("Failed to get working directory")
+			panic("failed to get working directory")
 		}
-		_, err = os.ReadFile(filepath.Join(wd, "components", n.Data+".melte"))
-		// seeing if custom component exists
-		if err == nil {
-			// ComponentName := n.Data + "awdw"
-			// OutScript := ""
-			// scripts, _ := RemoveJS(n.Data + ".melte")
-			// for scriptIndex := range scripts {
-			// 	script := TransformScript(scripts[scriptIndex])
-			// 	OutScript += script
-			// }
-			// fmt.Println(OutScript)
-			//fi, err := os.ReadFile(filepath.Join(wd, "components", n.Data+".melte"))
-			//writeFile, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0600)
-			if err != nil {
-				panic(err)
-			}
-			component := ReplaceCustomComponentWithHTML(ParseHTMLAsComponent(filepath.Join(wd, "components", n.Data+".melte"))) // adds components scripts to Scripts
-			//fmt.Println("Replacing component with : ", component[0].Data)
-			// component, err := html.ParseFragment(strings.NewReader(string(f)), &html.Node{
-			// 	Type:     html.ElementNode,
-			// 	Data:     "div",
-			// 	DataAtom: atom.Div,
-			// })
 
-			if err != nil {
-				panic(err)
-			}
+		// seeing if custom component exists
+
+		_, err = os.ReadFile(filepath.Join(wd, "components", n.Data+".melte"))
+		if err == nil {
+			component := ReplaceCustomComponentWithHTML(ParseHTMLAsComponent(filepath.Join(wd, "components", n.Data+".melte"))) // adds components scripts to Scripts
+
 			n.Attr = append(n.Attr, html.Attribute{
 				Key: "melte-id",
 				Val: n.Data + fmt.Sprintf("%d", CCount),
 			})
-			fmt.Println("Component : ", component)
 			for _, child := range component {
 				if child.Data == "script" {
 					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+fmt.Sprintf("%d", CCount))
@@ -103,16 +82,9 @@ func replace(n *html.Node) {
 					ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
 
 				} else {
-					// this is happening twice for some reason
-					fmt.Println(child.Data, ": adding component node")
 					n.AppendChild(child)
 				}
-				// if err = html.Render(writeFile, root[child]); err != nil {
-				// 	panic(err)
-				// }
 			}
-
-			// node := html.Node()
 		}
 	}
 
