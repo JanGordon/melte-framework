@@ -9,7 +9,13 @@ require (
 	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2
 )
 
-require github.com/gorilla/websocket v1.5.0 // indirect
+require (
+	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
+	github.com/fatih/color v1.13.0 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/manifoldco/promptui v0.9.0 // indirect
+	github.com/mattn/go-colorable v0.1.9 // indirect
+)
 
 require (
 	github.com/gin-contrib/sse v0.1.0 // indirect

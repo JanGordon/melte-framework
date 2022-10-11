@@ -2,6 +2,10 @@ package compile
 
 import (
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/evanw/esbuild/pkg/api"
 )
@@ -16,48 +20,22 @@ func main() {
 	}
 }
 
-func BuildFile() {
-	// result := api.Build(api.BuildOptions{
-	// 	EntryPoints:       []string{filePath},
-	// 	Bundle:            true,
-	// 	MinifyWhitespace:  true,
-	// 	MinifyIdentifiers: true,
-	// 	MinifySyntax:      true,
-	// 	Loader: map[string]api.Loader{
-	// 		".html": api.LoaderFile,
-	// 		".svg":  api.LoaderText,
-	// 	},
-	// 	Write:  true,
-	// 	Outdir: "out/ybox",
-	// })
-	// fmt.Println(result)
+func Build() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic("failed to get working directory")
+	}
+	err = filepath.WalkDir(cwd+"/routes", buildRoute)
+	if err != nil {
+		panic("error reading routes folder")
+	}
 
-	// if len(result.Errors) > 0 {
-	// 	os.Exit(1)
-	// }
-	// routesToMake, err := filepath.Glob("route/*.html")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// mux := http.NewServeMux()
-	// rh := http.RedirectHandler("http://example.org", 307)
-	// for _, file := range routesToMake {
-	// 	fmt.Println(strings.TrimSuffix(file, filepath.Ext(file)))
-	// 	mux.Handle("/"+strings.TrimSuffix(file, filepath.Ext(file)), rh)
-	// }
-	// http.ListenAndServe(":3000", mux)
-	html := ReplaceComponentWithHTML(ParseHTMLFragmentFromPath("test.html"))
-	// Loop over every script in:
-	BuildPage(html, "out.html", "./", false, false, true)
-
-	// OutScript := `const SELF = document.querySelector("[melte-id='']")`
-	// scripts, html := RemoveJS(filePath)
-	// for scriptIndex := range scripts {
-	// 	script := TransformScript(scripts[scriptIndex])
-	// 	OutScript += script
-	// }
 }
 
-func DevServer() {
-
+func buildRoute(path string, di fs.DirEntry, err error) error {
+	dir, filename := filepath.Split(path)
+	if filepath.Ext(path) == ".html" && filename != "out.html" && !strings.HasPrefix(filename, "layout") {
+		BuildPage(ReplaceComponentWithHTML(ParseHTMLFragmentFromPath(path)), dir+"out.html", dir, false, true, false)
+	}
+	return nil
 }
