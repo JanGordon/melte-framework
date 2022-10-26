@@ -1,11 +1,23 @@
 make:
-let globalValue = "hi"
+//@melte preserve state: client
+var globalValue = "hi" //preserver in js head
 
+//@melte prsererve state: storage
+var webStorageValue = "hello" //store with webStorage, use mutationObsevere to update value in storage
+
+//@melte prsererve state: IndexedDB
+var indexedDB = "This is indexedDb" //store in indexedDB
+
+//@melte prsererve state: url
+var 
 
 be preserverved on route chaneg
 this should be put in inlined js in head of out.html becasue flamethrower keeps state here
 but
 var value = "hi"
+
+be able to fully store all state to client, webstorage, indexedDB and maybe even the url
+
 should be set to null and any code on the rout eshould be purged
 
 might have to reqrite flamethrower to allow for html fragments to preserve state
@@ -20,6 +32,10 @@ during this time, a mutuation observer should be added to this varibale and shou
 dynamic routes need to be added:
 [hello].html
 every time page is loaded rebuild [hello].html or just have js that extracts it and sets the varibale, "hello" to it
+
+chunk js bundles for each event listener
+
+remmeber scroll position chnagng routes
 
 [handler].go
 run this evert time page is loaded
