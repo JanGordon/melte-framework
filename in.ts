@@ -11,6 +11,6 @@
         SELF.querySelector("button").innerText = (count).toString()
     })
     SELF.querySelector("button").innerText = (count).toString()
-    //Using js to update very page load is to slow and causes an update which is very ugly
+    //Using js to update very page load is too slow and causes an update which is very ugly
 
 }

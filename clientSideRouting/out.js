@@ -1,10 +1,1 @@
-// in.ts
-var caches = {};
-async function cacheAllLinks() {
-  var links = Array(document.querySelector("a"));
-  for (let link of links) {
-    console.log("Caching: ", link.href);
-    caches[link.href] = await fetch(link.href);
-  }
-}
-cacheAllLinks();
+(()=>{var l={};async function i(){var u=Array(document.querySelectorAll("a"));console.log("caching new links...");for(let o of u){console.log(u,o);var s=o[0];let a=new URL(s.href);await fetch(a).then(function(e){return e.text()}).then(function(e){l[a]=e}),o[0].addEventListener("click",async function(e){e.preventDefault();var c=o[0];if(l.hasOwnProperty(c)){let n=new URL(c.href);var d=l[n];let r=Range.prototype.createContextualFragment.bind(document.createRange());var h=document.implementation.createHTMLDocument();h.documentElement.innerHTML=d,console.log("Loading cached page",d),document.body.innerHTML=h.body.innerHTML,history.replaceState({},h.title,c.href),document.body.querySelectorAll("script").forEach(function(t){if(t.src.includes("out.js")){var f=new URL(t.src.slice(0,t.src.indexOf("out.js"))),g=document.createElement("script");t.parentNode.appendChild(g),t.remove(),g.src=f.pathname+"out.js?cachebuster="+new Date().getTime(),console.log(f.pathname+"out.js?cachebuster="+new Date().getTime())}}),i()}else setTimeout(()=>{console.log("Page hasn't been cached, loading...")},1e3),await fetch(a).then(function(n){return n.text()}).then(function(n){l[a]=n;var r=document.implementation.createHTMLDocument();r.documentElement.innerHTML=d,document.body.innerHTML=r.body.innerHTML,history.replaceState({},r.title,c.href),i()});var m="hello";console.log(m);var m="hello";function y(){}})}}Array(document.querySelectorAll("a")).forEach(function(u,s){});window.addEventListener("popstate",i);i();})();

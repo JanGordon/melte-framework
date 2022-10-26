@@ -25,6 +25,4 @@ every time page is loaded rebuild [hello].html or just have js that extracts it 
 run this evert time page is loaded
 
 
-current working directory should be used to make it work anywhere
-
-rebuild on first load of dev server and make it live reload wihtout websocket connection
+make the builder generate js bundle in chunks to be lazy loaded when the component requiring them comes into view
