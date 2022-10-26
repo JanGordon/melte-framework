@@ -22,12 +22,10 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 	}
 	importLines := ""
 	scriptExceptImports := ""
-	if findLayouts {
-		root = populateLayout(root, outPath, writeFile)
-	}
 	for script := range Scripts {
 
 		if inlineJS {
+			// cat be asked wht this
 			scriptC := &html.Node{
 				Data:     "script",
 				Type:     html.ElementNode,
@@ -39,7 +37,23 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 			//fmt.Println("Adding Script", Scripts)
 		} else {
 			importRemovedLines := ""
-			lines := strings.Split(Scripts[script].Data, "\n")
+			scriptData := Scripts[script].FirstChild.Data
+			docPos := ""
+			for _, a := range Scripts[script].Attr {
+				if a.Key == "melte-docpos" {
+					docPos = a.Val
+				}
+			}
+			for _, a := range Scripts[script].Attr {
+				if a.Key == "src" {
+					scriptDataNew, _ := os.ReadFile(filepath.Join(docPos, a.Val))
+					scriptData = string(scriptDataNew)
+					// should also use aliases
+					//make sure this file is opened with write state
+					// ./ should be realtive to
+				}
+			}
+			lines := strings.Split(scriptData, "\n")
 			for i, line := range lines {
 				if strings.HasPrefix(strings.TrimSpace(line), "import") {
 					importLines += fmt.Sprintf("%s\n", line)
@@ -90,7 +104,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 	})
 	scriptFlamethrower.Attr = append(scriptFlamethrower.Attr, html.Attribute{
 		Key: "src",
-		Val: "/clientSideRouting/src.js",
+		Val: "/clientSideRouting/out.js",
 	})
 	root.LastChild.FirstChild.AppendChild(scriptFlamethrower)
 	if dev {

@@ -71,12 +71,12 @@ func Run(port int) {
 	err = filepath.WalkDir(cwd, initWatcher)
 	// err = filepath.WalkDir(cwd+"/hotReload", initWatcher)
 	// err = filepath.WalkDir(cwd+"/routes", initWatcher)
-	Server.GET("/clientSideRouting/src.js", devHandler)
+	Server.GET("/clientSideRouting/out.js", devHandler)
 	Server.GET("/hotReload/WebSocket.js", devHandler)
 	Server.GET("/hotReloadWS", hotReloadHandler)
 	reBuildFull()
 	fmt.Println("Starting dev server for ", cwd, " ...")
-	fmt.Println("connect to http://127.0.0.1:8080/ to begin live rebuild")
+	fmt.Println("connect to http://127.0.0.1:8888/ to begin live rebuild")
 
 	RunServer(Server)
 
@@ -101,6 +101,7 @@ func runS(conn *websocket.Conn, message []byte, mt int) {
 	//server
 
 	done := make(chan bool)
+	fmt.Println("Watchin")
 	go func() {
 		defer close(done)
 
@@ -112,7 +113,7 @@ func runS(conn *websocket.Conn, message []byte, mt int) {
 					return
 				}
 
-				// fmt.Println(event.Name, event.Op)
+				fmt.Println(event.Name, event.Op)
 				_, filename := filepath.Split(event.Name)
 				if isSystemFile(filename) {
 					// fmt.Println("Ignoring: ", filename)
@@ -242,7 +243,7 @@ func fileInRouteHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 
 func otherHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//fmt.Println(r.URL.Path)
-	p := filepath.Join(cwd, r.URL.Path)
+	p := filepath.Join(cwd, strings.Replace(r.URL.Path, "/r", "", 1))
 	fmt.Println("serving", filepath.Join("./", r.URL.Path), " with other handler")
 	http.ServeFile(w, r, p)
 }
@@ -256,7 +257,7 @@ func devHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 func routeHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//fmt.Println(r.URL.Path)
-	p := filepath.Join(cwd, "/routes", r.URL.Path, "out.html")
+	p := filepath.Join("./routes", r.URL.Path, "out.html")
 	fmt.Println("serving", filepath.Join("./routes", r.URL.Path, "out.html"), " wiht routeHandler")
 	http.ServeFile(w, r, p)
 }
@@ -297,7 +298,7 @@ func visitPath(path string, di fs.DirEntry, err error) error {
 
 	dir, filename := filepath.Split(path)
 	if filepath.Ext(path) == ".html" && filename != "out.html" && !strings.HasPrefix(filename, "layout") {
-		compile.BuildPage(compile.ReplaceComponentWithHTML(compile.ParseHTMLFragmentFromPath(path)), dir+"out.html", dir, false, true, false)
+		compile.BuildPage(compile.ReplaceComponentWithHTML(compile.ParseHTMLFragmentFromPath(path), false, dir+"out.html"), dir+"out.html", dir, false, true, true)
 	}
 	return nil
 }

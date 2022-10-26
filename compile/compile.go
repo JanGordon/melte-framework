@@ -35,7 +35,7 @@ func Build() {
 func buildRoute(path string, di fs.DirEntry, err error) error {
 	dir, filename := filepath.Split(path)
 	if filepath.Ext(path) == ".html" && filename != "out.html" && !strings.HasPrefix(filename, "layout") {
-		BuildPage(ReplaceComponentWithHTML(ParseHTMLFragmentFromPath(path)), dir+"out.html", dir, false, true, false)
+		BuildPage(ReplaceComponentWithHTML(ParseHTMLFragmentFromPath(path), true, dir+"out.html"), dir+"out.html", dir, false, true, false)
 	}
 	return nil
 }

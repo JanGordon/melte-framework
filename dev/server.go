@@ -17,7 +17,7 @@ func StartServer() *httprouter.Router {
 	return router
 }
 func RunServer(router *httprouter.Router) {
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":8888", router))
 }
 
 // func Serve(path string) {
