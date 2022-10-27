@@ -22,6 +22,8 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 	}
 	importLines := ""
 	scriptExceptImports := ""
+	HeadScript := "var _"
+
 	for script := range Scripts {
 
 		if inlineJS {
@@ -54,33 +56,62 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 				}
 			}
 			lines := strings.Split(scriptData, "\n")
-			for i, line := range lines {
+			for lineIndex, line := range lines {
+				l := strings.Trim(line, " ")
 				if strings.HasPrefix(strings.TrimSpace(line), "import") {
 					importLines += fmt.Sprintf("%s\n", line)
-				} else if strings.HasPrefix(strings.TrimSpace(line), "//@melte-custom:") {
-					args := strings.Split(string(strings.Replace(string(strings.TrimSpace(line)), "//@melte-custom: ", "", 1)), ",")
-					// found a custom declaration
-					// get type
-					if strings.TrimSpace((args[0])) == "var" {
-						//varDeclaration := lines[i+1]
-						// put in head if should'nt be reloaded on page change
-						lines[i+1] = ""
-						if stringInSlice("server", args) {
+				} else if strings.HasPrefix(l, "//=") {
+					l = strings.Trim(l, "//=")
 
+					if strings.HasPrefix(l, "keep state: ") {
+						l = strings.TrimSpace(strings.Replace(l, "keep state: ", "", 1))
+						fmt.Println("Found melte custom : ", l, lines[lineIndex+1])
+
+						if strings.HasPrefix(l, "js") {
+							decLine := strings.TrimSpace(lines[lineIndex+1])
+							if strings.HasPrefix(decLine, "var") {
+								HeadScript += strings.Replace(decLine, "var", ",", 1)
+								lines[lineIndex+1] = ""
+
+							} else if strings.HasPrefix(decLine, "let") {
+								varName := strings.Split(strings.Replace(decLine, "let", ",", 1), "=")
+								HeadScript += ", " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1) + " = " + varName[1]
+								fmt.Println("adding this to head: " + "let " + strings.Replace(varName[0], ", ", "", 1) + " = " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1))
+								lines[lineIndex+1] = "let " + strings.Replace(varName[0], ", ", "", 1) + " = " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1)
+
+							}
+						} else if strings.HasPrefix(l, "url") {
+							// jsDict := "{}"
+							// let js modify url when var chnage
+							// when url with ?variable=10 router should serve js with variable embedded in js
+							// and if possible update the html fragments with reactive html in them before serving
 						}
+
 					}
 				} else {
+					fmt.Println(line)
 					importRemovedLines += line + "\n"
 				}
 			}
 
-			scriptExceptImports = fmt.Sprintf("{\n// script for %s\n %s}", fmt.Sprintf("out%s.js", ScriptIDs[script]), importRemovedLines)
+			scriptExceptImports = scriptExceptImports + fmt.Sprintf("{\n// script for %s\n %s}", fmt.Sprintf("%s", ScriptIDs[script]), importRemovedLines)
 		}
 		// newPage.AppendChild(scriptC)
 
 	}
+	HeadScriptNode := &html.Node{
+		Data:     "script",
+		DataAtom: atom.Script,
+		Type:     html.ElementNode,
+	}
+	HeadScriptNode.AppendChild(&html.Node{
+		Data: HeadScript,
+		Type: html.TextNode,
+	})
+	root.LastChild.FirstChild.AppendChild(HeadScriptNode)
 	cwd, err := os.Getwd()
 	file := importLines + "\n" + scriptExceptImports
+	fmt.Println(file)
 	BuildScriptFile(file, filepath.Join(outPathJS, "out.js"))
 	fmt.Println(outPathJS)
 	scriptC := &html.Node{
@@ -136,6 +167,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 		}
 	}
 	Scripts = nil
+	HeadScripts = nil
 	ScriptIDs = nil
 	CCount = 0
 	//fmt.Println(len(Scripts))

@@ -113,7 +113,7 @@ func runS(conn *websocket.Conn, message []byte, mt int) {
 					return
 				}
 
-				fmt.Println(event.Name, event.Op)
+				// fmt.Println(event.Name, event.Op)
 				_, filename := filepath.Split(event.Name)
 				if isSystemFile(filename) {
 					// fmt.Println("Ignoring: ", filename)
@@ -261,7 +261,6 @@ func routeHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Println("serving", filepath.Join("./routes", r.URL.Path, "out.html"), " wiht routeHandler")
 	http.ServeFile(w, r, p)
 }
-
 func goHandler() {
 	//
 }

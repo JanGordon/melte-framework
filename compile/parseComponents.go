@@ -15,7 +15,6 @@ var CCount = 0
 func ReplaceComponentWithHTML(root html.Node, findLayouts bool, pagePath string) html.Node {
 	CCount++
 	replace(&root, pagePath)
-	CCount = 0
 	if findLayouts {
 		fmt.Println("Finding layout for ", pagePath)
 		dir := filepath.Dir(filepath.Join(pagePath))
@@ -65,7 +64,6 @@ func ReplaceLayoutWithHTML(root html.Node, slotInsert string, pagePath string) h
 
 	newRoot := root
 	replaceSlot((&root), slotInsert, pagePath, &newRoot, false)
-	CCount = 0
 
 	return root
 }
@@ -79,7 +77,6 @@ func ReplaceCustomComponentWithHTML(root []*html.Node, pagePath string) []*html.
 		// 	panic(err)
 		// }
 	}
-	CCount = 0
 	return root
 }
 
@@ -110,10 +107,50 @@ func tempRender(path string, root *html.Node) {
 }
 
 var Scripts []html.Node
+var HeadScripts []html.Node
 var ScriptIDs []string
 
 func replace(n *html.Node, pagePath string) {
+	CCount++
 	if n.Type == html.ElementNode {
+		//checkForMelteDef(n)
+		// if n.Data == "script" {
+
+		// 	// fmt.Println("Found script", n.FirstChild.Data)
+		// 	OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']");`, n.Data+fmt.Sprintf("%d", CCount)) + "\n"
+		// 	// We need to move the script to end and add module tag
+
+		// 	scriptComponent := &html.Node{
+		// 		Data:     "script",
+		// 		Type:     html.ElementNode,
+		// 		DataAtom: atom.Script,
+		// 		Attr:     n.Attr,
+		// 	}
+		// 	newScript := &html.Node{
+		// 		Data: OutScript + n.FirstChild.Data,
+		// 		Type: html.TextNode,
+		// 	}
+		// 	scriptComponent.AppendChild(newScript)
+
+		// 	scriptComponent.Attr = append(scriptComponent.Attr, html.Attribute{
+		// 		Key: "melte-docpos",
+		// 		Val: pagePath,
+		// 	})
+
+		// 	// n.RemoveChild(n.FirstChild)
+		// 	// component[node].AppendChild(scriptComponent)
+		// 	// if err != nil {
+		// 	// 	panic(err)
+		// 	// }
+		// 	fmt.Println("Data adding to SCripts: ", scriptComponent.FirstChild.Data, " the end")
+		// 	Scripts = append(Scripts, *scriptComponent)
+		// 	ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
+		// 	if n.Parent != nil {
+		// 		n.Parent.RemoveChild(n)
+
+		// 	}
+
+		// }
 		wd, err := os.Getwd()
 		if err != nil {
 			panic("failed to get working directory")
@@ -129,8 +166,11 @@ func replace(n *html.Node, pagePath string) {
 				Key: "melte-id",
 				Val: n.Data + fmt.Sprintf("%d", CCount),
 			})
+			// out:
 			for _, child := range component {
 				if child.Data == "script" {
+
+					fmt.Println("Found script")
 					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+fmt.Sprintf("%d", CCount))
 					// We need to move the script to end and add module tag
 
@@ -159,7 +199,10 @@ func replace(n *html.Node, pagePath string) {
 					}
 					Scripts = append(Scripts, *scriptComponent)
 					ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
+					if child.Parent != nil {
+						child.Parent.RemoveChild(child)
 
+					}
 				} else {
 					n.AppendChild(child)
 				}
@@ -175,8 +218,10 @@ func replace(n *html.Node, pagePath string) {
 
 func replaceSlot(n *html.Node, slotInsert string, pagePath string, rootCopy *html.Node, cont bool) {
 	// maybe adding slot to itslef and then adding thme evry loop
+	CCount++
 	done := cont
 	if n.Type == html.ElementNode {
+		//checkForMelteDef(n)
 		wd, err := os.Getwd()
 		if err != nil {
 			panic("failed to get working directory")
@@ -391,3 +436,38 @@ func isChildOf(child *html.Node, parentName string) bool {
 	}
 	return false
 }
+
+// func checkForMelteDef(n *html.Node) {
+// 	if n.Data == "script" && n.Type == html.ElementNode {
+// 		lines := strings.Split(n.FirstChild.Data, "\n")
+// 		for lineIndex, line := range lines {
+// 			l := strings.Trim(line, " ")
+// 			if strings.HasPrefix(l, "//=") {
+// 				l = strings.Trim(l, "//=")
+// 				if strings.HasPrefix(l, "keep state:") {
+// 					l = strings.TrimSpace(strings.Trim(l, "keep state:"))
+// 					if strings.HasPrefix(l, "js") {
+// 						scriptNode := &html.Node{
+// 							Data:     "script",
+// 							DataAtom: atom.Script,
+// 							Type:     html.ElementNode,
+// 						}
+// 						scriptNode.AppendChild(&html.Node{
+// 							Data: lines[lineIndex+1],
+// 							Type: html.TextNode,
+// 						})
+// 						HeadScripts = append(HeadScripts, *scriptNode)
+// 					} else if strings.HasPrefix(l, "url") {
+// 						// jsDict := "{}"
+// 						// let js modify url when var chnage
+// 						// when url with ?variable=10 router should serve js with variable embedded in js
+// 						// and if possible update the html fragments with reactive html in them before serving
+// 					}
+// 				}
+// 			}
+// 		}
+
+// 	} else {
+// 		fmt.Println("not a melte def script")
+// 	}
+// }

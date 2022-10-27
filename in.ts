@@ -1,10 +1,10 @@
     import hello from "Component/app.js"
 
 {
-// script for outout-hi0.js.js
- const SELF = document.querySelector("[melte-id='hi0']")
+// script for out-hi54.js
+ const SELF = document.querySelector("[melte-id='hi54']")
     hello()
-    
+
     SELF.querySelector("button").addEventListener("click", function() {
         console.log(SELF.querySelector("button").innerText)
         count += 1

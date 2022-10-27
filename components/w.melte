@@ -1,5 +1,20 @@
 <script>
-console.log("Woofil" + SELF)
+    import hello from "Component/app.js"
+    hello()
+    //=keep state: js
+    var count = 10
+    SELF.querySelector("button").addEventListener("click", function() {
+        console.log(SELF.querySelector("button").innerText)
+        count += 1
+        SELF.querySelector("button").innerText = (count).toString()
+    })
+    SELF.querySelector("button").innerText = (count).toString()
+    //Using js to update very page load is too slow and causes an update which is very ugly
 </script>
-<h1>This is working!</h1>
-<h1>why twi<h1>
+<p>Hello world</p>
+<button>0</button>
+<div>Hello my name is jan
+    <p>and not wolf</p>
+    <div>Hello is this working?</div>
+</div>
+   

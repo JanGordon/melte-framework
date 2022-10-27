@@ -1,7 +1,8 @@
 <script>
     import hello from "Component/app.js"
     hello()
-    
+    //=keep state: js
+    var count = 10
     SELF.querySelector("button").addEventListener("click", function() {
         console.log(SELF.querySelector("button").innerText)
         count += 1
@@ -14,5 +15,6 @@
 <button>0</button>
 <div>Hello my name is jan
     <p>and not wolf</p>
+    <div>Hello is this working?</div>
 </div>
    

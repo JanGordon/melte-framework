@@ -5,7 +5,7 @@ function hello() {
 
 // in.ts
 {
-  const SELF = document.querySelector("[melte-id='hi0']");
+  const SELF = document.querySelector("[melte-id='hi54']");
   hello();
   SELF.querySelector("button").addEventListener("click", function() {
     console.log(SELF.querySelector("button").innerText);
