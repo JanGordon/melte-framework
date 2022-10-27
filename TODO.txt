@@ -8,17 +8,21 @@ var webStorageValue = "hello" //store with webStorage, use mutationObsevere to u
 //@melte prsererve state: IndexedDB
 var indexedDB = "This is indexedDb" //store in indexedDB
 
-//@melte prsererve state: url
+//@melte prsererve state: url // when set in head, update url with this and then with proxies d othis
 var 
 
 be preserverved on route chaneg
+
+These need to be put in the head of page and set.
 this should be put in inlined js in head of out.html becasue flamethrower keeps state here
 but
 var value = "hi"
 
 be able to fully store all state to client, webstorage, indexedDB and maybe even the url
 
-should be set to null and any code on the rout eshould be purged
+
+
+#should be set to null and any code on the rout eshould be purged
 
 might have to reqrite flamethrower to allow for html fragments to preserve state
 
