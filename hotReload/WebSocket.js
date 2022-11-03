@@ -1,5 +1,5 @@
 try {
-    var exampleSocket = new WebSocket("ws://127.0.0.1:8888/hotReloadWS");
+    var exampleSocket = new WebSocket("ws://"+ location.host +"/hotReloadWS");
 
     exampleSocket.onopen = (event) => {
         exampleSocket.send("Succesfully connected");

@@ -1,6 +1,7 @@
 package dev
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -13,11 +14,10 @@ func StartServer() *httprouter.Router {
 	router := httprouter.New()
 	// router.GET("/", Index)
 	// router.GET("/hello/:name", Hello)
-
 	return router
 }
-func RunServer(router *httprouter.Router) {
-	log.Fatal(http.ListenAndServe(":8888", router))
+func RunServer(router *httprouter.Router, port int) {
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), router))
 }
 
 // func Serve(path string) {

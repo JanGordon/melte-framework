@@ -53,4 +53,4 @@ allow let so that state variables dont have to be globalValue
 use the compoennt id and add onto varibale
 then in top of script block for that do
 
-let hello = hellohi67
+let hello = hellohi67 ## still needs work

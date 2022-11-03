@@ -76,9 +76,9 @@ func Run(port int) {
 	Server.GET("/hotReloadWS", hotReloadHandler)
 	reBuildFull()
 	fmt.Println("Starting dev server for ", cwd, " ...")
-	fmt.Println("connect to http://127.0.0.1:8888/ to begin live rebuild")
+	fmt.Printf("connect to http://127.0.0.1:%v/ to begin live rebuild\n", port)
 
-	RunServer(Server)
+	RunServer(Server, port)
 
 	if err != nil {
 		panic("error reading routes folder")
@@ -101,7 +101,7 @@ func runS(conn *websocket.Conn, message []byte, mt int) {
 	//server
 
 	done := make(chan bool)
-	fmt.Println("Watchin")
+	fmt.Println("Watching")
 	go func() {
 		defer close(done)
 
@@ -250,9 +250,17 @@ func otherHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 func devHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//fmt.Println(r.URL.Path)
-	p := filepath.Join("./", r.URL.Path)
-	fmt.Println("serving", filepath.Join("./", r.URL.Path), " with other handler")
-	http.ServeFile(w, r, p)
+	if r.URL.Path == "/clientSideRouting/out.js" {
+		fmt.Fprint(w, router())
+		// http.ServeFile(w, r, "./clientSideRouting/src.js")
+	} else if r.URL.Path == "/hotReload/WebSocket.js" {
+		fmt.Fprint(w, hotReload())
+	} else {
+		p := filepath.Join("./", r.URL.Path)
+		fmt.Println("serving", filepath.Join("./", r.URL.Path), " with other handler")
+		http.ServeFile(w, r, p)
+	}
+
 }
 
 func routeHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

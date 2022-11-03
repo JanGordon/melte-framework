@@ -3,11 +3,11 @@ var caches = {};
 
 
 async function cacheAllLinks() {
-    var links = Array(document.querySelectorAll("a"))
-    console.log("caching new links...")
+    var links = Array.from(document.querySelectorAll("a"))
+    console.log("caching new links...", links)
     for (let link of links) {
-        console.log(links, link)
-        var l = link[0]
+        console.log(link)
+        var l = link
         let url = new URL(l.href)
         await fetch(url)
         .then(function(response) {
@@ -17,9 +17,8 @@ async function cacheAllLinks() {
         })
 
 
-        link[0].addEventListener("click", async function(e) {
+        link.addEventListener("click", async function(e) {
             e.preventDefault();
-            var l = link[0]
             if (caches.hasOwnProperty(l)) {
                 let url = new URL(l.href)
                 var response = caches[url]

@@ -359,6 +359,7 @@ func ParseHTMLFragmentFromPath(path string) html.Node {
 	if err != nil {
 		panic(err)
 	}
+	file = []byte(checkHTMLFile(string(file)))
 	root, err := html.Parse(strings.NewReader(string(file)))
 	if err != nil {
 		panic(err)
@@ -368,22 +369,23 @@ func ParseHTMLFragmentFromPath(path string) html.Node {
 
 func ParseHTMLFragmentFromString(file string) html.Node {
 	//do what old replacehtml did
-	root, err := html.Parse(strings.NewReader(file))
+	root, err := html.Parse(strings.NewReader(checkHTMLFile(file)))
 	if err != nil {
 		panic(err)
 	}
 	return *root
 }
 
-func ParseHTMLNodeToChildren(node *html.Node) []*html.Node {
-	var newNodes []*html.Node
-	for child := node.FirstChild; child != nil; child = child.NextSibling {
-		newNodes = append(newNodes, child)
-	}
-	return newNodes
-}
+// func ParseHTMLNodeToChildren(node *html.Node) []*html.Node {
+// 	var newNodes []*html.Node
+// 	for child := node.FirstChild; child != nil; child = child.NextSibling {
+// 		newNodes = append(newNodes, child)
+// 	}
+// 	return newNodes
+// }
 
 func ParseHTMLStringAsComponent(root string) []*html.Node {
+	root = checkHTMLFile(root)
 	rootList, err := html.ParseFragment(strings.NewReader(root), &html.Node{
 		Data:     "div",
 		DataAtom: atom.Div,
@@ -409,6 +411,7 @@ func ParseHTMLAsComponent(path string) []*html.Node {
 	if err != nil {
 		panic(err)
 	}
+	file = []byte(checkHTMLFile(string(file)))
 	rootList, err := html.ParseFragment(strings.NewReader(string(file)), &html.Node{
 		Data:     "div",
 		DataAtom: atom.Div,

@@ -130,12 +130,12 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 		DataAtom: atom.Script,
 	}
 	scriptFlamethrower.Attr = append(scriptFlamethrower.Attr, html.Attribute{
-		Key: "type",
-		Val: "module",
-	})
-	scriptFlamethrower.Attr = append(scriptFlamethrower.Attr, html.Attribute{
 		Key: "src",
 		Val: "/clientSideRouting/out.js",
+	})
+	scriptFlamethrower.Attr = append(scriptFlamethrower.Attr, html.Attribute{
+		Key: "defer",
+		Val: "",
 	})
 	root.LastChild.FirstChild.AppendChild(scriptFlamethrower)
 	if dev {
