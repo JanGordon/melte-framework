@@ -1,0 +1,1 @@
+var result = '';for let i of [new Image("src.png"),2,3,4]{result += '    <h1></h1>'}
