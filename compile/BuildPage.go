@@ -65,7 +65,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 
 					if strings.HasPrefix(l, "keep state: ") {
 						l = strings.TrimSpace(strings.Replace(l, "keep state: ", "", 1))
-						fmt.Println("Found melte custom : ", l, lines[lineIndex+1])
+						//fmt.Println("Found melte custom : ", l, lines[lineIndex+1])
 
 						if strings.HasPrefix(l, "js") {
 							decLine := strings.TrimSpace(lines[lineIndex+1])
@@ -76,7 +76,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 							} else if strings.HasPrefix(decLine, "let") {
 								varName := strings.Split(strings.Replace(decLine, "let", ",", 1), "=")
 								HeadScript += ", " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1) + " = " + varName[1]
-								fmt.Println("adding this to head: " + "let " + strings.Replace(varName[0], ", ", "", 1) + " = " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1))
+								//fmt.Println("adding this to head: " + "let " + strings.Replace(varName[0], ", ", "", 1) + " = " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1))
 								lines[lineIndex+1] = "let " + strings.Replace(varName[0], ", ", "", 1) + " = " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1)
 
 							}
@@ -89,7 +89,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 
 					}
 				} else {
-					fmt.Println(line)
+					//fmt.Println(line)
 					importRemovedLines += line + "\n"
 				}
 			}
@@ -111,9 +111,9 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 	root.LastChild.FirstChild.AppendChild(HeadScriptNode)
 	cwd, err := os.Getwd()
 	file := importLines + "\n" + scriptExceptImports
-	fmt.Println(file)
+	//fmt.Println(file)
 	BuildScriptFile(file, filepath.Join(outPathJS, "out.js"))
-	fmt.Println(outPathJS)
+	//fmt.Println(outPathJS)
 	scriptC := &html.Node{
 		Data:     "script",
 		Type:     html.ElementNode,

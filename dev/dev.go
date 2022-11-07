@@ -101,7 +101,6 @@ func runS(conn *websocket.Conn, message []byte, mt int) {
 	//server
 
 	done := make(chan bool)
-	fmt.Println("Watching")
 	go func() {
 		defer close(done)
 
@@ -155,7 +154,6 @@ func runS(conn *websocket.Conn, message []byte, mt int) {
 }
 
 func handleMessage(mt int, message string) {
-	fmt.Println("Message recieved: ", message)
 }
 
 func reload(conn *websocket.Conn, mt int) string {
@@ -196,7 +194,6 @@ func reBuildChunk(dir string) {
 
 func initWatcher(path string, di fs.DirEntry, err error) error {
 	if di.IsDir() && !stringInSlice(path, watcher.WatchList()) {
-		fmt.Println(" watching contents of ", path)
 		err = watcher.Add(path)
 		if err != nil {
 			log.Fatal("Add failed:", err)
@@ -267,6 +264,12 @@ func routeHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//fmt.Println(r.URL.Path)
 	p := filepath.Join("./routes", r.URL.Path, "out.html")
 	fmt.Println("serving", filepath.Join("./routes", r.URL.Path, "out.html"), " wiht routeHandler")
+	//os .write
+	f, err := os.OpenFile(filepath.Join(cwd, filepath.Join("./routes", r.URL.Path, "out.html")), os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprint(f, checkServerFuncs(filepath.Join("./routes", r.URL.Path, "out.html")))
 	http.ServeFile(w, r, p)
 }
 func goHandler() {
@@ -326,4 +329,20 @@ func isSystemFile(filename string) bool {
 	} else {
 		return false
 	}
+}
+
+func checkServerFuncs(route string) string {
+	f, err := os.ReadFile(route)
+	file := string(f)
+	if err != nil {
+		panic("failed to read route")
+	}
+	for _, f := range compile.ServerFunctions {
+		fmt.Println(f.Route, filepath.Join(cwd, route))
+		if f.Route == filepath.Join(cwd, route) {
+			file = f.F(route, file)
+			fmt.Println("Hello")
+		}
+	}
+	return file
 }

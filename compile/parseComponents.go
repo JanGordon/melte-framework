@@ -16,7 +16,7 @@ func ReplaceComponentWithHTML(root html.Node, findLayouts bool, pagePath string)
 	CCount++
 	replace(&root, pagePath)
 	if findLayouts {
-		fmt.Println("Finding layout for ", pagePath)
+		//fmt.Println("Finding layout for ", pagePath)
 		dir := filepath.Dir(filepath.Join(pagePath))
 		files, err := os.ReadDir(dir)
 	out:
@@ -24,7 +24,7 @@ func ReplaceComponentWithHTML(root html.Node, findLayouts bool, pagePath string)
 			for _, f := range files {
 				// fmt.Println(f.Name())
 				if !f.IsDir() && strings.HasPrefix(f.Name(), "layout") {
-					fmt.Println("Layout template found: ", filepath.Join(dir, f.Name()))
+					//fmt.Println("Layout template found: ", filepath.Join(dir, f.Name()))
 					// first arg is template
 					// second is slotInsert
 					file, err := os.ReadFile(filepath.Join(dir, f.Name()))
@@ -34,12 +34,12 @@ func ReplaceComponentWithHTML(root html.Node, findLayouts bool, pagePath string)
 
 					tempRender(pagePath, &root)
 					newRootOut, err := os.ReadFile(pagePath)
-					fmt.Println(string(newRootOut))
-					fmt.Println("HHHHHHHHHHHHHHH")
-					parsed := ParseHTMLFragmentFromString(string(newRootOut))
+					//fmt.Println(string(newRootOut))
+					//fmt.Println("HHHHHHHHHHHHHHH")
+					parsed := ParseHTMLFragmentFromString(string(newRootOut), pagePath)
 					TreePrinter(&parsed)
-					fmt.Println("---------")
-					root = ReplaceLayoutWithHTML(ParseHTMLFragmentFromString(string(file)), string(newRootOut), pagePath)
+					//fmt.Println("---------")
+					root = ReplaceLayoutWithHTML(ParseHTMLFragmentFromString(string(file), pagePath), string(newRootOut), pagePath)
 					break out
 				}
 
@@ -91,7 +91,7 @@ func tempRender(path string, root *html.Node) {
 	for child := root.FirstChild; child != nil; child = child.NextSibling {
 
 		// only render internal elemnt not head and stuff
-		fmt.Println("Rednedering ", child.Data, " to out.html temporarily")
+		//fmt.Println("Rednedering ", child.Data, " to out.html temporarily")
 		if child.Type == html.ElementNode {
 			child.Attr = append(child.Attr, html.Attribute{
 				Key: "tempRendered",
@@ -170,7 +170,7 @@ func replace(n *html.Node, pagePath string) {
 			for _, child := range component {
 				if child.Data == "script" {
 
-					fmt.Println("Found script")
+					//fmt.Println("Found script")
 					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+fmt.Sprintf("%d", CCount))
 					// We need to move the script to end and add module tag
 
@@ -280,8 +280,8 @@ func replaceSlot(n *html.Node, slotInsert string, pagePath string, rootCopy *htm
 
 			// need to use specific child of slotInsert
 			// component := ReplaceCustomComponentWithHTML(ParseHTMLStringAsComponent(string(file)), pagePath) // adds components scripts to Scripts
-			component := ReplaceCustomComponentWithHTML(ParseHTMLStringAsComponent(slotInsert), pagePath) // adds components scripts to Scripts
-			fmt.Println("----------------------------")
+			component := ReplaceCustomComponentWithHTML(ParseHTMLStringAsComponent(slotInsert, pagePath), pagePath) // adds components scripts to Scripts
+			//fmt.Println("----------------------------")
 
 			n.Attr = append(n.Attr, html.Attribute{
 				Key: "melte-id",
@@ -293,7 +293,7 @@ func replaceSlot(n *html.Node, slotInsert string, pagePath string, rootCopy *htm
 			// }
 			for _, child := range component {
 				// TreePrinter(child)
-				fmt.Println("Looping over elements in slot : ", n.Data)
+				//fmt.Println("Looping over elements in slot : ", n.Data)
 				if child.Data == "script" {
 					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']" )`, n.Data+fmt.Sprintf("%d", CCount))
 					// We need to move the script to end and add module tag
@@ -359,7 +359,7 @@ func ParseHTMLFragmentFromPath(path string) html.Node {
 	if err != nil {
 		panic(err)
 	}
-	file = []byte(checkHTMLFile(string(file)))
+	file = []byte(checkHTMLFile(string(file), path))
 	root, err := html.Parse(strings.NewReader(string(file)))
 	if err != nil {
 		panic(err)
@@ -367,9 +367,9 @@ func ParseHTMLFragmentFromPath(path string) html.Node {
 	return *root
 }
 
-func ParseHTMLFragmentFromString(file string) html.Node {
+func ParseHTMLFragmentFromString(file string, path string) html.Node {
 	//do what old replacehtml did
-	root, err := html.Parse(strings.NewReader(checkHTMLFile(file)))
+	root, err := html.Parse(strings.NewReader(checkHTMLFile(file, path)))
 	if err != nil {
 		panic(err)
 	}
@@ -384,8 +384,8 @@ func ParseHTMLFragmentFromString(file string) html.Node {
 // 	return newNodes
 // }
 
-func ParseHTMLStringAsComponent(root string) []*html.Node {
-	root = checkHTMLFile(root)
+func ParseHTMLStringAsComponent(root string, path string) []*html.Node {
+	root = checkHTMLFile(root, path)
 	rootList, err := html.ParseFragment(strings.NewReader(root), &html.Node{
 		Data:     "div",
 		DataAtom: atom.Div,
@@ -411,7 +411,7 @@ func ParseHTMLAsComponent(path string) []*html.Node {
 	if err != nil {
 		panic(err)
 	}
-	file = []byte(checkHTMLFile(string(file)))
+	file = []byte(checkHTMLFile(string(file), path))
 	rootList, err := html.ParseFragment(strings.NewReader(string(file)), &html.Node{
 		Data:     "div",
 		DataAtom: atom.Div,
