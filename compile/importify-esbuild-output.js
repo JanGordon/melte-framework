@@ -1,1 +1,3 @@
-var result = '';for let i of [new Image("src.png"),2,3,4]{result += '    <h1></h1>'}
+var hi = "piff ting"
+console.log(`hey there ${}`)
+for (let i= 0; i<10; i++){result += '        hello ${i} world'}
