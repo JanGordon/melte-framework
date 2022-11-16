@@ -20,6 +20,7 @@ type Token struct {
 	endBracket   int
 	startLine    int
 	endLine      int
+	identifier   string
 }
 
 var ServerFunctions []ServerFunc
@@ -42,6 +43,7 @@ func checkHTMLFile(file string, path string) string {
 						startBracket: currentCharNum + c,
 						depth:        tokenDepth,
 						startLine:    currentLine,
+						identifier:   "{{",
 					})
 					fmt.Println("Opeing token")
 					tokenDepth++
@@ -57,72 +59,91 @@ func checkHTMLFile(file string, path string) string {
 							break
 						}
 					}
+				} else if char == "!" && string(line[c-1]) == "{" {
+					tokens = append(tokens, Token{
+						open:         true,
+						startBracket: currentCharNum + c,
+						depth:        tokenDepth,
+						startLine:    currentLine,
+						identifier:   "{!",
+					})
+					fmt.Println("Opeing token")
+					tokenDepth++
 				}
 			}
 		}
 		currentCharNum += len(line) + 1
 	}
 	// newChars := []rune(file)
+	resultNum := 0
+	ctx := v8.NewContext()
 	for p := len(tokens) - 1; p >= 0; p-- {
 		t := tokens[p]
 		//fmt.Println(t.open)
 		if t.open {
 			panic(fmt.Errorf("unclosed {{ at: %v", t.startLine))
 		} else {
-			split := strings.Split(lines[t.startLine], "{{")
-			if strings.HasPrefix(split[1], "for") {
 
-			}
-			option := strings.Split(split[1], "||")
-			js := option[0]
-			if len(option) > 1 {
-				reloadOn := strings.Split(option[1], ",")
-				for _, event := range reloadOn {
-					event = strings.TrimSpace(event)
-					if event == "onbuild" {
-						// run js
-						// need to add mutation object to update whne changed
-						ctx := v8.NewContext()
-						fmt.Println("JS:", js)
+			if t.identifier == "{{" {
+				split := strings.Split(lines[t.startLine], "{{")
+				if strings.HasPrefix(split[1], "for") {
 
-						jsForReload := "var result = '';" + js + "{result += '" + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "'}"
-						fmt.Printf("var result = '';" + js + "{result += '" + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "'}")
+				}
+				option := strings.Split(split[1], "||")
+				js := option[0]
+				if len(option) > 1 {
+					reloadOn := strings.Split(option[1], ",")
+					for _, event := range reloadOn {
+						event = strings.TrimSpace(event)
+						if event == "onbuild" {
+							// run js
+							// need to add mutation object to update whne changed
 
-						ctx.RunScript(jsForReload, "main.js") // any functions previously added to the context can be called
-						// ctx.RunScript("var result = 'hello'; for (let i of [{hello : 'g'},2,3,4]){result += '    <h1></h1>'}", "main.js") // any functions previously added to the context can be called
-						val, _ := ctx.RunScript("result", "value.js") // return a value in JavaScript back to Go
-						fmt.Println("Fixed loop: ", val, " //")
-						fmt.Printf("After brackets : %v || \n", file[t.endBracket+2:])
-						file = file[:t.startBracket-1] + fmt.Sprint(val) + file[t.endBracket+1:]
+							fmt.Println("JS:", js)
 
-					} else if strings.HasPrefix(event, "onload") {
-						if strings.HasSuffix(event, "server") {
-							fmt.Println("The path", path)
-							dir, _ := filepath.Split(path)
-							fmt.Println("Startbracket :", t.endBracket)
-							UpdateForLoop(dir, js, t, lines)
+							jsForReload := fmt.Sprintf("var result%v = '';", resultNum) + js + fmt.Sprintf("{result%v += `", resultNum) + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "`}"
+							fmt.Printf("var result = '';" + js + "{result += '" + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "'}")
 
+							ctx.RunScript(jsForReload, "main.js") // any functions previously added to the context can be called
+							// ctx.RunScript("var result = 'hello'; for (let i of [{hello : 'g'},2,3,4]){result += '    <h1></h1>'}", "main.js") // any functions previously added to the context can be called
+							val, _ := ctx.RunScript(fmt.Sprintf("result%v", resultNum), "value.js") // return a value in JavaScript back to Go
+							fmt.Println("Fixed loop: ", val, " //")
+							fmt.Printf("After brackets : %v || \n", file[t.endBracket+2:])
+							file = file[:t.startBracket-1] + fmt.Sprint(val) + file[t.endBracket+1:]
+						} else if strings.HasPrefix(event, "onload") {
+							if strings.HasSuffix(event, "server") {
+								fmt.Println("The path", path)
+								dir, _ := filepath.Split(path)
+								fmt.Println("Startbracket :", t.endBracket)
+								UpdateForLoop(dir, js, t, lines)
+
+							}
 						}
 					}
-				}
-			} else {
-				// run js
-				// need to add mutation object to update whne changed
-				ctx := v8.NewContext()
-				jsForReload := "var result = '';" + js + "{result += `" + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "`}"
-				fmt.Printf("var result = '';" + js + "{result += `" + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "`}")
+				} else {
+					// run js
+					// need to add mutation object to update whne changed
 
-				ctx.RunScript(jsForReload, "main.js") // any functions previously added to the context can be called
-				// ctx.RunScript("var result = 'hello'; for (let i of [{hello : 'g'},2,3,4]){result += '    <h1></h1>'}", "main.js") // any functions previously added to the context can be called
-				val, _ := ctx.RunScript("result", "value.js") // return a value in JavaScript back to Go
-				fmt.Println("Fixed loop: ", val, " //")
-				fmt.Printf("After brackets : %v || \n", file[t.endBracket+2:])
-				file = file[:t.startBracket-1] + fmt.Sprint(val) + file[t.endBracket+1:]
+					fmt.Println("JS:", js)
+
+					jsForReload := fmt.Sprintf("var result%v = '';", resultNum) + js + fmt.Sprintf("{result%v += `", resultNum) + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "`}"
+					fmt.Printf("var result = '';" + js + "{result += '" + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "'}")
+
+					ctx.RunScript(jsForReload, "main.js") // any functions previously added to the context can be called
+					// ctx.RunScript("var result = 'hello'; for (let i of [{hello : 'g'},2,3,4]){result += '    <h1></h1>'}", "main.js") // any functions previously added to the context can be called
+					val, _ := ctx.RunScript(fmt.Sprintf("result%v", resultNum), "value.js") // return a value in JavaScript back to Go
+					fmt.Println("Fixed loop: ", fmt.Sprintf("result%v", resultNum), jsForReload, val, " //")
+					fmt.Printf("After brackets : %v || \n", file[t.endBracket+2:])
+					file = file[:t.startBracket-1] + fmt.Sprint(val) + file[t.endBracket+1:]
+				}
+			} else if t.identifier == "{!" {
 
 			}
+
 			// file = strings.ReplaceAll(file, strings.Join((lines[(t.startLine):(t.endLine)]), "\n")+"\n}}", fmt.Sprint(val))
 
 		}
+		resultNum++
 	}
 	return file
 }
