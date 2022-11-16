@@ -7,10 +7,14 @@ I made this framework because I think that modern frameworks rely too heavily on
 If you can read my code then pull requests are welcome but don't expect me to very quick as I have school. 
 
 
-# Using it (why?)
+# Using it
 To run start the dev server you firstly have to install it with ./install.sh (this works on my chromebook but I can't guarantte that it will work on anything else) then run 
     melte dev <port number>
 There will be a lot of junk printed out but you should be able to connect to localhost:<port number>
+    git clone https://github.com/JanGordon/melte-framework.git
+    cd melte-framework
+    ./install.sh
+
 
 # Features
 - For loops:
