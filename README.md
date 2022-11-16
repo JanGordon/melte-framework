@@ -18,15 +18,15 @@ There will be a lot of junk printed out but you should be able to connect to loc
 
 # Features
 - For loops:
-  {{for (let i of [1,2,3,4])
-    <h1>${i}</h1>
-  }}
+{{for (let i of [1,2,3,4])
+  <h1>${i}</h1>
+}}
 - Client side routing
 - A feeble attempt at hot reload (it is very temperemental)
 - Preserve state across routes (hopefully soon with indexedDB as well):
   Put this before variable declarations:
-    //=keep state: js
-    var count = 10;
+      //=keep state: js
+      var count = 10;
 - components:
   place .melte file in rootofproject/components and write basically svelte
 - File based router
