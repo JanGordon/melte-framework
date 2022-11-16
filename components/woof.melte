@@ -1,5 +1,0 @@
-<script>
-    SELF.innerText = "woofs"
-</script>
-<p>Woof<p>
-

@@ -206,17 +206,22 @@ func initWatcher(path string, di fs.DirEntry, err error) error {
 		if filename == "out.html" && !stringInSlice(filepath.Join("/", strings.Replace(dir, "routes", "", 1)), Handlers) {
 			Server.GET(filepath.Join("/", strings.Replace(dir, "routes", "", 1)), routeHandler)
 			Handlers = append(Handlers, filepath.Join("/", strings.Replace(dir, "routes", "", 1)))
-			// fmt.Println("route Handling ", filepath.Join("/", strings.Replace(dir, "routes", "", 1)), " ", path)
+			//fmt.Println("route Handling ", filepath.Join("/", strings.Replace(dir, "routes", "", 1)), " ", path)
 
 		} else if strings.HasPrefix(dir, "/routes") && !stringInSlice(filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), Handlers) {
 			Server.GET(filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), fileInRouteHandler)
 			Handlers = append(Handlers, filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename))
-			// fmt.Println("fileinRoute Handling ", filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), " ", path)
+			//fmt.Println("fileinRoute Handling ", filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), " ", path)
+
+		} else if strings.HasPrefix(dir, "/public") && !stringInSlice(filepath.Join("/", dir, filename), Handlers) {
+			Server.GET(filepath.Join("/", dir, filename), pubHandler)
+			Handlers = append(Handlers, filepath.Join("/", dir, filename))
+			//fmt.Println("fileinRoute Handling ", filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), " ", path)
 
 		} else if !stringInSlice(filepath.Join("/r", dir, filename), Handlers) {
 			Server.GET(filepath.Join("/r", dir, filename), otherHandler)
 			Handlers = append(Handlers, filepath.Join("/r", dir, filename))
-			// fmt.Println("other Handling ", filepath.Join("/r", dir, filename), " ", path)
+			//fmt.Println("other Handling ", filepath.Join("/r", dir, filename), " ", path)
 
 		}
 	}
@@ -235,6 +240,13 @@ func fileInRouteHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 	//fmt.Println(r.URL.Path)
 	p := filepath.Join(cwd, "/routes", r.URL.Path)
 	fmt.Println("serving", "./routes"+r.URL.Path, " with file in route handler")
+	http.ServeFile(w, r, p)
+}
+
+func pubHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	//fmt.Println(r.URL.Path)
+	p := filepath.Join(cwd, r.URL.Path)
+	fmt.Println("serving"+r.URL.Path, " with pubHandler")
 	http.ServeFile(w, r, p)
 }
 
@@ -295,6 +307,11 @@ func visitPath(path string, di fs.DirEntry, err error) error {
 		} else if strings.HasPrefix(dir, "/routes") && !stringInSlice(filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), Handlers) {
 			Server.GET(filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), fileInRouteHandler)
 			Handlers = append(Handlers, filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename))
+			//fmt.Println("fileinRoute Handling ", filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), " ", path)
+
+		} else if strings.HasPrefix(dir, "/public") && !stringInSlice(filepath.Join("/", dir, filename), Handlers) {
+			Server.GET(filepath.Join("/", dir, filename), pubHandler)
+			Handlers = append(Handlers, filepath.Join("/", dir, filename))
 			//fmt.Println("fileinRoute Handling ", filepath.Join("/", strings.Replace(dir, "/routes", "", 1), filename), " ", path)
 
 		} else if !stringInSlice(filepath.Join("/r", dir, filename), Handlers) {
