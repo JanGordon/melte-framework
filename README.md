@@ -11,6 +11,7 @@ If you can read my code then pull requests are welcome but don't expect me to ve
 To run start the dev server you firstly have to install it with ./install.sh (this works on my chromebook but I can't guarantte that it will work on anything else) then run 
     melte dev <port number>
 There will be a lot of junk printed out but you should be able to connect to localhost:<port number>
+    
     git clone https://github.com/JanGordon/melte-framework.git
     cd melte-framework
     ./install.sh
@@ -18,15 +19,19 @@ There will be a lot of junk printed out but you should be able to connect to loc
 
 # Features
 - For loops:
+    
 {{for (let i of [1,2,3,4])
   <h1>${i}</h1>
 }}
+    
 - Client side routing
 - A feeble attempt at hot reload (it is very temperemental)
 - Preserve state across routes (hopefully soon with indexedDB as well):
   Put this before variable declarations:
+    
       //=keep state: js
       var count = 10;
+    
 - components:
   place .melte file in rootofproject/components and write basically svelte
 - File based router
