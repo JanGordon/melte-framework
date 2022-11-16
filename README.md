@@ -33,6 +33,7 @@ It should have very good client side performance and got 100 lighthouse score in
 # What is still needs:
 - A lot
 - layouts
+- desparately a .gitignore
 
 You can (will be) see an example of most of the features [here](github.com/JanGordon/melte-demo)
     
