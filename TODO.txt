@@ -54,3 +54,6 @@ use the compoennt id and add onto varibale
 then in top of script block for that do
 
 let hello = hellohi67 ## still needs work
+
+
+make context available to all js in {!!} blocks

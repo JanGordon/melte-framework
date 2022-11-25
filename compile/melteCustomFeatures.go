@@ -25,8 +25,10 @@ type Token struct {
 
 var ServerFunctions []ServerFunc
 
-func checkHTMLFile(file string, path string) string {
+func checkHTMLFile(file string, path string, ctx *v8.Context) string {
 	// chars := []rune(file)
+	RunInitialScripts(path, file)
+	ctx.RunScript("let test = 'hello';", "rand.js")
 	tokenDepth := 0
 	tokens := []Token{}
 	lines := strings.Split(file, "\n")
@@ -52,7 +54,7 @@ func checkHTMLFile(file string, path string) string {
 
 					for p := len(tokens) - 1; p >= 0; p-- {
 
-						if tokens[p].open {
+						if tokens[p].open && tokens[p].identifier == "{{" {
 							tokens[p].open = false
 							tokens[p].endBracket = currentCharNum + c
 							tokens[p].endLine = currentLine
@@ -69,6 +71,18 @@ func checkHTMLFile(file string, path string) string {
 					})
 					fmt.Println("Opeing token")
 					tokenDepth++
+				} else if char == "}" && string(line[c-1]) == "!" {
+					fmt.Println("closing, ", char, c, currentLine, currentCharNum+c)
+
+					for p := len(tokens) - 1; p >= 0; p-- {
+
+						if tokens[p].open && tokens[p].identifier == "{!" {
+							tokens[p].open = false
+							tokens[p].endBracket = currentCharNum + c
+							tokens[p].endLine = currentLine
+							break
+						}
+					}
 				}
 			}
 		}
@@ -76,7 +90,6 @@ func checkHTMLFile(file string, path string) string {
 	}
 	// newChars := []rune(file)
 	resultNum := 0
-	ctx := v8.NewContext()
 	for p := len(tokens) - 1; p >= 0; p-- {
 		t := tokens[p]
 		//fmt.Println(t.open)
@@ -124,8 +137,6 @@ func checkHTMLFile(file string, path string) string {
 					// run js
 					// need to add mutation object to update whne changed
 
-					fmt.Println("JS:", js)
-
 					jsForReload := fmt.Sprintf("var result%v = '';", resultNum) + js + fmt.Sprintf("{result%v += `", resultNum) + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "`}"
 					fmt.Printf("var result = '';" + js + "{result += '" + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "'}")
 
@@ -137,7 +148,13 @@ func checkHTMLFile(file string, path string) string {
 					file = file[:t.startBracket-1] + fmt.Sprint(val) + file[t.endBracket+1:]
 				}
 			} else if t.identifier == "{!" {
+				js := fmt.Sprintf("var result%v = ", resultNum) + string(file[t.startBracket+1:t.endBracket-1])
+				ctx.RunScript(js, fmt.Sprintf("main%v.js", CCount))
 
+				val, _ := ctx.RunScript(fmt.Sprintf("result%v", resultNum), "value.js")
+				fmt.Println(js)
+
+				file = file[:t.startBracket-1] + fmt.Sprint(val) + file[t.endBracket+1:]
 			}
 
 			// file = strings.ReplaceAll(file, strings.Join((lines[(t.startLine):(t.endLine)]), "\n")+"\n}}", fmt.Sprint(val))

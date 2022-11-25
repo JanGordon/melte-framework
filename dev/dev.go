@@ -13,6 +13,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
+	"rogchap.com/v8go"
 )
 
 var cwd, _ = os.Getwd()
@@ -325,7 +326,8 @@ func visitPath(path string, di fs.DirEntry, err error) error {
 
 	dir, filename := filepath.Split(path)
 	if filepath.Ext(path) == ".html" && filename != "out.html" && !strings.HasPrefix(filename, "layout") {
-		compile.BuildPage(compile.ReplaceComponentWithHTML(compile.ParseHTMLFragmentFromPath(path), false, dir+"out.html"), dir+"out.html", dir, false, true, true)
+		v8Context := v8go.NewContext()
+		compile.BuildPage(compile.ReplaceComponentWithHTML(compile.ParseHTMLFragmentFromPath(path), false, dir+"out.html", v8Context), dir+"out.html", dir, false, true, true, v8Context)
 	}
 	return nil
 }

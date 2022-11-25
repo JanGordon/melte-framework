@@ -11,7 +11,7 @@ var versionCmd = &cobra.Command{
 	Aliases: []string{"v"},
 	Short:   "shows the version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Melte v0.0.3")
+		fmt.Println("Melte v0.0.4")
 	},
 }
 

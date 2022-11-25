@@ -9,12 +9,17 @@ async function cacheAllLinks() {
         console.log(link)
         var l = link
         let url = new URL(l.href)
+        if( window.location.origin == url.origin) {
+        } else {
+            console.log("passing this link: not on same origin")
+            continue
+        }
         await fetch(url)
         .then(function(response) {
             return response.text()
         }).then(function(data) {
             caches[url] = data
-        })
+        }).catch((error)=>{console.log("Failed to fetch link")})
 
 
         link.addEventListener("click", async function(e) {
@@ -52,6 +57,7 @@ async function cacheAllLinks() {
                     history.replaceState( {} , doc.title, l.href );
                     cacheAllLinks()
                 })
+                .catch(()=>{console.log("Failed to fetch link")})
             }
     
             {var hello = "hello"}

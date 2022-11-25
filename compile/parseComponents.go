@@ -8,13 +8,42 @@ import (
 
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+	"rogchap.com/v8go"
 )
 
-var CCount = 0
+type Context struct {
+	absPath string
+	v8Ctx   *v8go.Context
+}
 
-func ReplaceComponentWithHTML(root html.Node, findLayouts bool, pagePath string) html.Node {
+var CCount = 0
+var Contexts []Context
+
+func getContext(path string) *v8go.Context {
+	var ctx *v8go.Context
+	path, _ = filepath.Split(path)
+	a, _ := filepath.Abs(filepath.Join(path, "out.html"))
+	for c := 0; c < len(Contexts); c++ {
+		// fmt.Printf("Conctext %s to match %s \n", Contexts[c].absPath, a)
+		if Contexts[c].absPath == a {
+			ctx = Contexts[c].v8Ctx
+		}
+	}
+	if ctx == nil {
+		fmt.Println("No context found: creating new at " + a)
+		ctx = v8go.NewContext()
+		Contexts = append(Contexts, Context{a, ctx})
+	} else {
+		fmt.Println("Found context")
+	}
+
+	return ctx
+}
+func ReplaceComponentWithHTML(root html.Node, findLayouts bool, pagePath string, c *v8go.Context) html.Node {
 	CCount++
-	replace(&root, pagePath)
+	var ctx = getContext(pagePath)
+
+	replace(&root, pagePath, ctx)
 	if findLayouts {
 		//fmt.Println("Finding layout for ", pagePath)
 		dir := filepath.Dir(filepath.Join(pagePath))
@@ -61,16 +90,30 @@ func ReplaceComponentWithHTML(root html.Node, findLayouts bool, pagePath string)
 
 func ReplaceLayoutWithHTML(root html.Node, slotInsert string, pagePath string) html.Node {
 	CCount++
-
+	var ctx = getContext(pagePath)
 	newRoot := root
-	replaceSlot((&root), slotInsert, pagePath, &newRoot, false)
+	replaceSlot((&root), slotInsert, pagePath, &newRoot, false, ctx)
 
 	return root
 }
 
 func ReplaceCustomComponentWithHTML(root []*html.Node, pagePath string) []*html.Node {
+	var ctx = getContext(pagePath)
 	for _, child := range root {
-		replace(child, pagePath)
+		// OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, child.Data+fmt.Sprintf("%d", CCount))
+
+		// for _, a := range child.Attr {
+		// 	if a.Key == "ssr" {
+		// 		fmt.Println("Found script", child.Attr)
+
+		// 		ctx.RunScript(child.FirstChild.Data, fmt.Sprintf("%v.js", CCount))
+		// 		// v, _ := ctx.RunScript(fmt.Sprintf("result%v", CCount), "value.js") // return a value in JavaScript back to Go
+
+		// 		fmt.Printf("Run scirpt : ", child.FirstChild.Data)
+		// 	}
+
+		// }
+		replace(child, pagePath, ctx)
 		CCount++
 
 		// if err = html.Render(writeFile, root[child]); err != nil {
@@ -110,7 +153,7 @@ var Scripts []html.Node
 var HeadScripts []html.Node
 var ScriptIDs []string
 
-func replace(n *html.Node, pagePath string) {
+func replace(n *html.Node, pagePath string, ctx *v8go.Context) {
 	CCount++
 	if n.Type == html.ElementNode {
 		//checkForMelteDef(n)
@@ -155,6 +198,20 @@ func replace(n *html.Node, pagePath string) {
 		if err != nil {
 			panic("failed to get working directory")
 		}
+		// if n.Data == "script" {
+		// 	// OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']");`, n.Data+fmt.Sprintf("%d", CCount))
+		// 	fmt.Println("Found script", n.Attr)
+		// 	for _, a := range n.Attr {
+		// 		if a.Key == "ssr" {
+
+		// 			ctx.RunScript(n.FirstChild.Data, "main.js") //fmt.Sprintf("%v.js", CCount)
+		// 			v, _ := ctx.RunScript("test", "value.js")   // return a value in JavaScript back to Go
+
+		// 			fmt.Printf("Run scirpt : %s , %s", n.FirstChild.Data, v)
+		// 		}
+
+		// 	}
+		// }
 
 		// seeing if custom component exists
 
@@ -169,9 +226,12 @@ func replace(n *html.Node, pagePath string) {
 			// out:
 			for _, child := range component {
 				if child.Data == "script" {
+					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+fmt.Sprintf("%d", CCount))
+					fmt.Println("hi", child.Attr)
+
+					// this doesnt loop over scripts in html file: fix
 
 					//fmt.Println("Found script")
-					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+fmt.Sprintf("%d", CCount))
 					// We need to move the script to end and add module tag
 
 					scriptComponent := &html.Node{
@@ -212,11 +272,11 @@ func replace(n *html.Node, pagePath string) {
 	}
 
 	for child := n.FirstChild; child != nil; child = child.NextSibling {
-		replace(child, pagePath)
+		replace(child, pagePath, ctx)
 	}
 }
 
-func replaceSlot(n *html.Node, slotInsert string, pagePath string, rootCopy *html.Node, cont bool) {
+func replaceSlot(n *html.Node, slotInsert string, pagePath string, rootCopy *html.Node, cont bool, ctx *v8go.Context) {
 	// maybe adding slot to itslef and then adding thme evry loop
 	CCount++
 	done := cont
@@ -230,6 +290,21 @@ func replaceSlot(n *html.Node, slotInsert string, pagePath string, rootCopy *htm
 		// seeing if custom component exists
 		_, err = os.ReadFile(filepath.Join(wd, "components", n.Data+".melte"))
 		// TreePrinter(n)
+
+		// if n.Data == "script" {
+		// 	// OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']");`, n.Data+fmt.Sprintf("%d", CCount))
+		// 	fmt.Println("Found script", n.Attr)
+		// 	for _, a := range n.Attr {
+		// 		if a.Key == "ssr" {
+
+		// 			ctx.RunScript(n.FirstChild.Data, "main.js") //fmt.Sprintf("%v.js", CCount)
+		// 			v, _ := ctx.RunScript("test", "value.js")   // return a value in JavaScript back to Go
+
+		// 			fmt.Printf("Run scirpt : %s , %s", n.FirstChild.Data, v)
+		// 		}
+
+		// 	}
+		// }
 		if err == nil {
 
 			component := ReplaceCustomComponentWithHTML(ParseHTMLAsComponent(filepath.Join(wd, "components", n.Data+".melte")), filepath.Join(wd, "components")) // adds components scripts to Scripts
@@ -242,6 +317,18 @@ func replaceSlot(n *html.Node, slotInsert string, pagePath string, rootCopy *htm
 				if child.Data == "script" {
 					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+fmt.Sprintf("%d", CCount))
 					// We need to move the script to end and add module tag
+					fmt.Println("hi", child.Attr)
+
+					for _, a := range child.Attr {
+						fmt.Println(a.Key)
+						if a.Key == "ssr" {
+							ctx.RunScript(OutScript+child.FirstChild.Data, fmt.Sprintf("%v.js", CCount))
+							// v, _ := ctx.RunScript(fmt.Sprintf("result%v", CCount), "value.js") // return a value in JavaScript back to Go
+
+							fmt.Printf("Run scirpt : ", OutScript+child.FirstChild.Data)
+						}
+
+					}
 
 					scriptComponent := &html.Node{
 						Data:     "script",
@@ -346,7 +433,7 @@ func replaceSlot(n *html.Node, slotInsert string, pagePath string, rootCopy *htm
 		// if done {
 		// 	break
 		// }
-		replaceSlot(child, slotInsert, pagePath, rootCopy, done)
+		replaceSlot(child, slotInsert, pagePath, rootCopy, done, ctx)
 		if child.Data == "slot" {
 			break
 		}
@@ -359,7 +446,7 @@ func ParseHTMLFragmentFromPath(path string) html.Node {
 	if err != nil {
 		panic(err)
 	}
-	file = []byte(checkHTMLFile(string(file), path))
+	file = []byte(checkHTMLFile(string(file), path, getContext(path)))
 	root, err := html.Parse(strings.NewReader(string(file)))
 	if err != nil {
 		panic(err)
@@ -369,7 +456,7 @@ func ParseHTMLFragmentFromPath(path string) html.Node {
 
 func ParseHTMLFragmentFromString(file string, path string) html.Node {
 	//do what old replacehtml did
-	root, err := html.Parse(strings.NewReader(checkHTMLFile(file, path)))
+	root, err := html.Parse(strings.NewReader(checkHTMLFile(file, path, getContext(path))))
 	if err != nil {
 		panic(err)
 	}
@@ -385,7 +472,7 @@ func ParseHTMLFragmentFromString(file string, path string) html.Node {
 // }
 
 func ParseHTMLStringAsComponent(root string, path string) []*html.Node {
-	root = checkHTMLFile(root, path)
+	root = checkHTMLFile(root, path, getContext(path))
 	rootList, err := html.ParseFragment(strings.NewReader(root), &html.Node{
 		Data:     "div",
 		DataAtom: atom.Div,
@@ -411,7 +498,7 @@ func ParseHTMLAsComponent(path string) []*html.Node {
 	if err != nil {
 		panic(err)
 	}
-	file = []byte(checkHTMLFile(string(file), path))
+	file = []byte(checkHTMLFile(string(file), path, getContext(path)))
 	rootList, err := html.ParseFragment(strings.NewReader(string(file)), &html.Node{
 		Data:     "div",
 		DataAtom: atom.Div,

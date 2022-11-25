@@ -8,9 +8,10 @@ import (
 
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+	"rogchap.com/v8go"
 )
 
-func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, dev bool, findLayouts bool) {
+func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, dev bool, findLayouts bool, ctx *v8go.Context) {
 	// This function should build a full html page from the list of Scripts and the component
 	//fmt.Println("Building the page: out.html and all scripts")
 	os.Truncate(outPath, 0)
@@ -23,7 +24,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 	importLines := ""
 	scriptExceptImports := ""
 	HeadScript := "var _"
-
+	
 	for script := range Scripts {
 
 		if inlineJS {

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,16 +9,80 @@
     <script>
         var count = 0
     </script>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#db4938" />
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", function() {
+                navigator.serviceWorker
+                .register("/sw.js")
+                .then(res => console.log("service worker registered"))
+                .catch(err => console.log("service worker not registered", err))
+            })
+        }
+    </script>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            margin-top: 0;
+        }
+
+    </style>
 </head>
+
 <body>
-    <h1>Hello world this is the home page </h1>
-    <a href="/shop">Shop</a>
-    This is the home page
-    <hi></hi>
-    {{for (let i= 0; i<10; i++)
-        hello ${i} world
-    }}
+    <header>
+        <div id="title">Melte Demo
+            <div id="underline"></div>
+        </div>
+    </header>
+    <main>
+        <hi></hi>
+        The Sistine Chapel is a chapel in the Apostolic Palace, in Vatican City and the official residence of the pope. Originally known as the Cappella Magna <a href="https://en.wikipedia.org/wiki/Sistine_Chapel">...</a>
+        <a href="/thing">Client side routing</a>
+    </main>
+
+    <style>
+        #title {
+
+            font-size: x-large;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bolder;
+            margin: 10px;
+        }
+
+        #underline {
+            margin: auto;
+            ;
+            width: 3em;
+            height: 0.1em;
+            background-color: red;
+        }
+
+        main {
+            padding: 1em;
+            z-index: 99;
+            height: 5000px;
+        }
+
+        h1 {
+            font-size: large;
+            font-weight: lighter;
+        }
+
+        header {
+            z-index: 100;
+            position: sticky;
+            top: 0px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            vertical-align: middle;
+            padding: 1px;
+            box-shadow: 0px 5px 10px rgb(126, 126, 126);
+        }
+    </style>
 </body>
+
 </html>
-
-
