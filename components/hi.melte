@@ -1,6 +1,5 @@
 <script>
-    import hello from "Component/app.js"
-    hello()
+    
     //=keep state: js
     var count = 10
     SELF.querySelector("button").addEventListener("click", function() {

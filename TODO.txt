@@ -28,7 +28,7 @@ might have to reqrite flamethrower to allow for html fragments to preserve state
 
 to preserve html fragments across routes:
 <h1>{count}</h1>
-will work by searching through html tree for these and then replace before loading
+will work by searching through html tree for these and then replace before loading <<<<<<<<<<<<<< main priority
 this means that the page will not have layout shift and will be quick
 during this time, a mutuation observer should be added to this varibale and should be updated whenever varibale chnages.
 
@@ -56,4 +56,4 @@ then in top of script block for that do
 let hello = hellohi67 ## still needs work
 
 
-make context available to all js in {!!} blocks
+make context available to all js in {!!} blocks // done

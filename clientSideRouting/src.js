@@ -32,6 +32,14 @@ async function cacheAllLinks() {
                 doc.documentElement.innerHTML = response
                 console.log("Loading cached page", response)
                 document.body.innerHTML = doc.body.innerHTML
+                console.log(doc.head.innerHTML)
+                document.head.querySelectorAll("*:not(script)").forEach(function(child) {
+                    child.remove()
+                })
+                doc.head.querySelectorAll("*:not(script").forEach(function (child) {
+                    document.head.appendChild(child)
+                })
+                // document.head.innerHTML = doc.head.innerHTML
                 history.replaceState( {} , doc.title, l.href );
                 document.body.querySelectorAll("script").forEach(function (script) {
                     if (script.src.includes("out.js")) {

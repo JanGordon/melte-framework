@@ -1,0 +1,1 @@
+esbuild ./clientSideRouting/src.js --bundle --outfile=./clientSideRouting/out.js --minify
