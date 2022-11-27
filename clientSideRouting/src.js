@@ -41,6 +41,29 @@ async function cacheAllLinks() {
                 })
                 // document.head.innerHTML = doc.head.innerHTML
                 history.replaceState( {} , doc.title, l.href );
+                var ssrScripts = ""
+                console.log()
+                doc.querySelectorAll("script[ssr='']").forEach(function (child) {
+                    if (child.innerText.charAt(child.innerText.length-1) == ";") {
+                        ssrScripts+=child.innerText
+                    } else {
+                        ssrScripts+=child.innerText+"\n"
+                    }
+                })
+                
+                
+                // refill <melte-reload>
+                doc.body.querySelectorAll("melte-reload").forEach(function(child){
+                    if (child.getAttribute("js") != "") {
+                        ssrScripts+= ""// add proxy and modifier
+                        // child.innerText = Function("'use strict';" + child.getAttribute("js"))()
+                        console.log("Preloaded responsive html")
+                    } else {
+                        console.log("melte-reload js field empty")
+                    }
+                })
+                Function(ssrScripts + "function handler(){}")()
+                
                 document.body.querySelectorAll("script").forEach(function (script) {
                     if (script.src.includes("out.js")) {
                         var newSrc = new URL(script.src.slice(0, script.src.indexOf("out.js")))
@@ -98,6 +121,10 @@ Array(document.querySelectorAll("a")).forEach(function(link, index) {
     
     
 })
+function makeEvalContext(declarations) {
+    eval(declarations);
+    return function (str) { eval(str); }
+}
 //listen for chnages in dom and see if links have been modified or added
 window.addEventListener("popstate", cacheAllLinks)
 cacheAllLinks()

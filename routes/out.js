@@ -1,6 +1,6 @@
 // in.ts
 {
-  const SELF = document.querySelector("[melte-id='hi90']");
+  const SELF = document.querySelector("[melte-id='hi95']");
   SELF.querySelector("button").addEventListener("click", function() {
     console.log(SELF.querySelector("button").innerText);
     count += 1;

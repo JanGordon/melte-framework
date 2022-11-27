@@ -261,8 +261,8 @@ func otherHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func devHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//fmt.Println(r.URL.Path)
 	if r.URL.Path == "/clientSideRouting/out.js" {
-		fmt.Fprint(w, router())
-		// http.ServeFile(w, r, "./clientSideRouting/src.js")
+		// fmt.Fprint(w, router())
+		http.ServeFile(w, r, "./clientSideRouting/src.js")
 	} else if r.URL.Path == "/hotReload/WebSocket.js" {
 		fmt.Fprint(w, hotReload())
 	} else {

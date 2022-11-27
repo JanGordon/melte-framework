@@ -154,7 +154,7 @@ func checkHTMLFile(file string, path string, ctx *v8.Context) string {
 				val, _ := ctx.RunScript(fmt.Sprintf("result%v", resultNum), "value.js")
 				fmt.Println(js)
 
-				file = file[:t.startBracket-1] + fmt.Sprint(val) + file[t.endBracket+1:]
+				file = file[:t.startBracket-1] + fmt.Sprintf("<melte-reload js='%s'>", string(file[t.startBracket+1:t.endBracket-1])) + fmt.Sprint(val) + "</melte-reload>" + file[t.endBracket+1:]
 			}
 
 			// file = strings.ReplaceAll(file, strings.Join((lines[(t.startLine):(t.endLine)]), "\n")+"\n}}", fmt.Sprint(val))
