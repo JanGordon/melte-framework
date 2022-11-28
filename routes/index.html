@@ -5,11 +5,12 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Melte demo app">
     <title>Document</title>
-    <script>
+    <script ssr>
         var count = 0
     </script>
-    <link rel="manifest" href="/manifest.json" />
+    <!-- <link rel="manifest" href="/manifest.json" /> -->
     <meta name="theme-color" content="#db4938" />
     <script>
         if ("serviceWorker" in navigator) {
@@ -38,7 +39,7 @@
         </div>
     </header>
     <main>
-        <hi>This slot works</hi>
+        <wifi>Slot<wifi>Nested SLot</wifi>{!count!}</wifi>
         The Sistine Chapel is a chapel in the Apostolic Palace, in Vatican City and the official residence of the pope. Originally known as the Cappella Magna <a href="https://en.wikipedia.org/wiki/Sistine_Chapel">...</a>
         <a href="/thing">Client side routing</a>
     </main>

@@ -14,7 +14,7 @@
 <button>0</button>
 <div>Hello World
     <p>hi</p>
-    <slot></slot>
+    <h1><slot></slot></h1>
     <div>Hello is this working?</div>
 </div>
    

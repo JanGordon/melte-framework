@@ -57,3 +57,22 @@ let hello = hellohi67 ## still needs work
 
 
 make context available to all js in {!!} blocks // done
+
+{{whilst fetch("hello") at nav // runs in client router  and bypasses whilst
+    loading
+{# then #}
+    Content
+}} csr works with any promises only on cleitn side
+
+{{fetch("hello) at build // can be build or serve or naviagtion
+ hi
+}} // wokrs with ceratin js only on server
+
+//fetch (ssr), for (ssr, csr), if (ssr, csr), whilst <promise> (csr)
+
+bugs:
+
+context is messed up for routes/out.html : creates new ctx for /melte-framework/ot.html
+on first load weird stuff happens
+
+f

@@ -2,11 +2,12 @@
     <meta charset="UTF-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Melte demo app"/>
     <title>Document</title>
-    <script>
+    <script ssr="">
         var count = 0
     </script>
-    <link rel="manifest" href="/manifest.json"/>
+    <!-- <link rel="manifest" href="/manifest.json" /> -->
     <meta name="theme-color" content="#db4938"/>
     <script>
         if ("serviceWorker" in navigator) {
@@ -26,7 +27,7 @@
         }
 
     </style>
-<script>var _, count = 10</script><script src="/clientSideRouting/out.js" defer=""></script><script src="/hotReload/WebSocket.js"></script></head>
+<script>var _</script><script src="/clientSideRouting/out.js" defer=""></script><script src="/hotReload/WebSocket.js"></script></head>
 
 <body>
     <header>
@@ -35,15 +36,7 @@
         </div>
     </header>
     <main>
-        <hi melte-id="hi95">
-<p>Hello world</p>
-<button>0</button>
-<div>Hello World
-    <p>hi</p>
-    <slottedwithreplace melte-id="slot87">This slot works</slottedwithreplace>
-    <div>Hello is this working?</div>
-</div>
-   </hi>
+        <wifi melte-id="wifi70"><div><slottedwithreplace melte-id="slot52">Slot<wifi melte-id="wifi64" melte-id="wifi85"><div><slottedwithreplace melte-id="slot81"><div><slottedwithreplace melte-id="slot62">Nested SLot</slottedwithreplace></div></slottedwithreplace></div></wifi><melte-reload js="count">undefined</melte-reload></slottedwithreplace></div></wifi>
         The Sistine Chapel is a chapel in the Apostolic Palace, in Vatican City and the official residence of the pope. Originally known as the Cappella Magna <a href="https://en.wikipedia.org/wiki/Sistine_Chapel">...</a>
         <a href="/thing">Client side routing</a>
     </main>
@@ -90,4 +83,4 @@
     </style>
 
 
-</body><script src="/out.js"></script></html>
+</body><script src="/out.js"></script></html>/html>
