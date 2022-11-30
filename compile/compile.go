@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/evanw/esbuild/pkg/api"
-	"rogchap.com/v8go"
 )
 
 func main() {
@@ -36,8 +35,7 @@ func Build() {
 func buildRoute(path string, di fs.DirEntry, err error) error {
 	dir, filename := filepath.Split(path)
 	if filepath.Ext(path) == ".html" && filename != "out.html" && !strings.HasPrefix(filename, "layout") {
-		c := v8go.NewContext()
-		BuildPage(ReplaceComponentWithHTML(ParseHTMLFragmentFromPath(path), true, dir+"out.html", c), dir+"out.html", dir, false, true, false, c)
+		BuildPage(ReplaceComponentWithHTML(ParseHTMLFragmentFromPath(path), true, path), dir+"out.html", dir, false, true, false)
 	}
 	return nil
 }

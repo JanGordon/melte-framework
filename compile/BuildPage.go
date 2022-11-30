@@ -8,12 +8,13 @@ import (
 
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
-	"rogchap.com/v8go"
 )
 
-func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, dev bool, findLayouts bool, ctx *v8go.Context) {
+func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, dev bool, findLayouts bool) {
 	// This function should build a full html page from the list of Scripts and the component
 	//fmt.Println("Building the page: out.html and all scripts")
+	// c := getContext(inPath)
+	// if ctx needed here then uncomment this
 	os.Truncate(outPath, 0)
 	writeFile, err := os.OpenFile(outPath, os.O_WRONLY|os.O_CREATE, 0600)
 
@@ -24,7 +25,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 	importLines := ""
 	scriptExceptImports := ""
 	HeadScript := "var _"
-	
+
 	for script := range Scripts {
 
 		if inlineJS {
@@ -57,6 +58,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 				}
 			}
 			lines := strings.Split(scriptData, "\n")
+			customCount := 0
 			for lineIndex, line := range lines {
 				l := strings.Trim(line, " ")
 				if strings.HasPrefix(strings.TrimSpace(line), "import") {
@@ -78,8 +80,8 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 								varName := strings.Split(strings.Replace(decLine, "let", ",", 1), "=")
 								HeadScript += ", " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1) + " = " + varName[1]
 								//fmt.Println("adding this to head: " + "let " + strings.Replace(varName[0], ", ", "", 1) + " = " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1))
-								lines[lineIndex+1] = "let " + strings.Replace(varName[0], ", ", "", 1) + " = " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1)
-
+								lines[lineIndex+1] = "let " + strings.Replace(varName[0], ", ", "", 1) + "=" + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1)
+								fmt.Println("added private component variable", lines[lineIndex+1])
 							}
 						} else if strings.HasPrefix(l, "url") {
 							// jsDict := "{}"
@@ -87,7 +89,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 							// when url with ?variable=10 router should serve js with variable embedded in js
 							// and if possible update the html fragments with reactive html in them before serving
 						}
-
+						customCount++
 					}
 				} else {
 					//fmt.Println(line)
@@ -112,7 +114,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 	root.LastChild.FirstChild.AppendChild(HeadScriptNode)
 	cwd, err := os.Getwd()
 	file := importLines + "\n" + scriptExceptImports
-	//fmt.Println(file)
+	// fmt.Println(file)
 	BuildScriptFile(file, filepath.Join(outPathJS, "out.js"))
 	//fmt.Println(outPathJS)
 	scriptC := &html.Node{

@@ -13,7 +13,6 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
-	"rogchap.com/v8go"
 )
 
 var cwd, _ = os.Getwd()
@@ -77,7 +76,8 @@ func Run(port int) {
 	Server.GET("/hotReloadWS", hotReloadHandler)
 	reBuildFull()
 	fmt.Println("Starting dev server for ", cwd, " ...")
-	fmt.Printf("connect to http://127.0.0.1:%v/ to begin live rebuild\n", port)
+
+	go fmt.Printf("connect to http://127.0.0.1:%v/ to begin live rebuild\n", port)
 
 	RunServer(Server, port)
 
@@ -326,8 +326,7 @@ func visitPath(path string, di fs.DirEntry, err error) error {
 
 	dir, filename := filepath.Split(path)
 	if filepath.Ext(path) == ".html" && filename != "out.html" && !strings.HasPrefix(filename, "layout") {
-		v8Context := v8go.NewContext()
-		compile.BuildPage(compile.ReplaceComponentWithHTML(compile.ParseHTMLFragmentFromPath(path), false, dir+"out.html", v8Context), dir+"out.html", dir, false, true, true, v8Context)
+		compile.BuildPage(compile.ReplaceComponentWithHTML(compile.ParseHTMLFragmentFromPath(path), false, path), dir+"out.html", dir, false, true, true)
 	}
 	return nil
 }
