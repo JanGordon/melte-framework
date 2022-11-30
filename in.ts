@@ -1,7 +1,7 @@
 
 {
-// script for out-hi99.js
- const SELF = document.querySelector("[melte-id='hi99']")
+// script for out-hi144.js
+ const SELF = document.querySelector("[melte-id='hi144']")
     
 
     SELF.querySelector("button").addEventListener("click", function() {
@@ -13,8 +13,8 @@
     //Using js to update very page load is too slow and causes an update which is very ugly
 
 }{
-// script for out-hi177.js
- const SELF = document.querySelector("[melte-id='hi177']")
+// script for out-hi222.js
+ const SELF = document.querySelector("[melte-id='hi222']")
     
 
     SELF.querySelector("button").addEventListener("click", function() {
@@ -26,8 +26,8 @@
     //Using js to update very page load is too slow and causes an update which is very ugly
 
 }{
-// script for out-hi255.js
- const SELF = document.querySelector("[melte-id='hi255']")
+// script for out-hi300.js
+ const SELF = document.querySelector("[melte-id='hi300']")
     
 
     SELF.querySelector("button").addEventListener("click", function() {
@@ -39,8 +39,8 @@
     //Using js to update very page load is too slow and causes an update which is very ugly
 
 }{
-// script for out-hi333.js
- const SELF = document.querySelector("[melte-id='hi333']")
+// script for out-hi378.js
+ const SELF = document.querySelector("[melte-id='hi378']")
     
 
     SELF.querySelector("button").addEventListener("click", function() {

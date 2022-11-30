@@ -1,2 +1,119 @@
-(()=>{var m=(c,n)=>()=>(n||c((n={exports:{}}).exports,n),n.exports);var g=m((exports,module)=>{var caches={};async function cacheAllLinks(){var c=Array.from(document.querySelectorAll("a"));console.log("caching new links...",c);for(let u of c){console.log(u);var n=u;let l=new URL(n.href);if(window.location.origin!=l.origin){console.log("passing this link: not on same origin");continue}await fetch(l).then(function(o){return o.text()}).then(function(o){caches[l]=o}).catch(o=>{console.log("Failed to fetch link")}),u.addEventListener("click",async function(o){if(o.preventDefault(),caches.hasOwnProperty(n)){let a=new URL(n.href);var s=caches[a];let i=Range.prototype.createContextualFragment.bind(document.createRange());var t=document.implementation.createHTMLDocument();t.documentElement.innerHTML=s,console.log("Loading cached page",s),document.body.innerHTML=t.body.innerHTML,console.log(t.head.innerHTML),document.head.querySelectorAll("*:not(script)").forEach(function(e){e.remove()}),t.head.querySelectorAll("*:not(script").forEach(function(e){document.head.appendChild(e)}),history.replaceState({},t.title,n.href);var r="";t.querySelectorAll("script[ssr='']").forEach(function(e){e.innerText.charAt(e.innerText.length-1)==";"?r+=e.innerText:r+=e.innerText+`
-`}),t.querySelectorAll("melte-reload").forEach(function(e){e.getAttribute("js")!=""?(r+="",console.log("Preloaded responsive html")):console.log("melte-reload js field empty")}),Function(r)(),document.body.querySelectorAll("script").forEach(function(e){if(e.src.includes("out.js")){var d=new URL(e.src.slice(0,e.src.indexOf("out.js"))),f=document.createElement("script");e.parentNode.appendChild(f),e.remove(),f.src=d.pathname+"out.js?cachebuster="+new Date().getTime(),console.log(d.pathname+"out.js?cachebuster="+new Date().getTime())}}),cacheAllLinks()}else setTimeout(()=>{console.log("Page hasn't been cached, loading...")},1e3),await fetch(l).then(function(a){return a.text()}).then(function(a){caches[l]=a;var i=document.implementation.createHTMLDocument();i.documentElement.innerHTML=s,document.body.innerHTML=i.body.innerHTML,history.replaceState({},i.title,n.href),cacheAllLinks()}).catch(()=>{console.log("Failed to fetch link")});var h="hello";console.log(h);var h="hello";function y(){}})}}Array(document.querySelectorAll("a")).forEach(function(c,n){});function makeEvalContext(declarations){return eval(declarations),function(str){eval(str)}}window.addEventListener("popstate",cacheAllLinks);cacheAllLinks()});g();})();
+(() => {
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __commonJS = (cb, mod) => function __require() {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  };
+
+  // clientSideRouting/src.js
+  var require_src = __commonJS({
+    "clientSideRouting/src.js"(exports, module) {
+      var caches = {};
+      async function cacheAllLinks() {
+        var links = Array.from(document.querySelectorAll("a"));
+        console.log("caching new links...", links);
+        for (let link of links) {
+          console.log(link);
+          var l = link;
+          let url = new URL(l.href);
+          if (window.location.origin == url.origin) {
+          } else {
+            console.log("passing this link: not on same origin");
+            continue;
+          }
+          await fetch(url).then(function(response) {
+            return response.text();
+          }).then(function(data) {
+            caches[url] = data;
+          }).catch((error) => {
+            console.log("Failed to fetch link");
+          });
+          link.addEventListener("click", async function(e) {
+            e.preventDefault();
+            if (caches.hasOwnProperty(l)) {
+              let url2 = new URL(l.href);
+              var response = caches[url2];
+              const parse = Range.prototype.createContextualFragment.bind(document.createRange());
+              var doc = document.implementation.createHTMLDocument();
+              doc.documentElement.innerHTML = response;
+              console.log("Loading cached page", response);
+              document.body.innerHTML = doc.body.innerHTML;
+              console.log(doc.head.innerHTML);
+              document.head.querySelectorAll("*:not(script)").forEach(function(child) {
+                child.remove();
+              });
+              doc.head.querySelectorAll("*:not(script").forEach(function(child) {
+                document.head.appendChild(child);
+              });
+              history.replaceState({}, doc.title, l.href);
+              var ssrScripts = "";
+              console.log();
+              doc.querySelectorAll("script[ssr='']").forEach(function(child) {
+                if (child.innerText.charAt(child.innerText.length - 1) == ";") {
+                  ssrScripts += child.innerText;
+                } else {
+                  ssrScripts += child.innerText + "\n";
+                }
+              });
+              doc.body.querySelectorAll("melte-reload").forEach(function(child) {
+                if (child.getAttribute("js") != "") {
+                  ssrScripts += "";
+                  console.log("Preloaded responsive html");
+                } else {
+                  console.log("melte-reload js field empty");
+                }
+              });
+              Function(ssrScripts + "function handler(){}")();
+              document.body.querySelectorAll("script").forEach(function(script) {
+                if (script.src.includes("out.js")) {
+                  var newSrc = new URL(script.src.slice(0, script.src.indexOf("out.js")));
+                  var newScript = document.createElement("script");
+                  script.parentNode.appendChild(newScript);
+                  script.remove();
+                  newScript.src = newSrc.pathname + "out.js?cachebuster=" + new Date().getTime();
+                  console.log(newSrc.pathname + "out.js?cachebuster=" + new Date().getTime());
+                }
+              });
+              cacheAllLinks();
+            } else {
+              setTimeout(() => {
+                console.log("Page hasn't been cached, loading...");
+              }, 1e3);
+              await fetch(url).then(function(response2) {
+                return response2.text();
+              }).then(function(data) {
+                caches[url] = data;
+                var doc2 = document.implementation.createHTMLDocument();
+                doc2.documentElement.innerHTML = response;
+                document.body.innerHTML = doc2.body.innerHTML;
+                history.replaceState({}, doc2.title, l.href);
+                cacheAllLinks();
+              }).catch(() => {
+                console.log("Failed to fetch link");
+              });
+            }
+            {
+              var hello = "hello";
+            }
+            {
+              console.log(hello);
+            }
+            var hello = "hello";
+            function onChange() {
+            }
+          });
+        }
+      }
+      Array(document.querySelectorAll("a")).forEach(function(link, index) {
+      });
+      function makeEvalContext(declarations) {
+        eval(declarations);
+        return function(str) {
+          eval(str);
+        };
+      }
+      window.addEventListener("popstate", cacheAllLinks);
+      cacheAllLinks();
+    }
+  });
+  require_src();
+})();

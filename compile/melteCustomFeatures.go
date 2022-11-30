@@ -47,10 +47,8 @@ func checkHTMLFile(file string, path string, ctx *v8.Context) string {
 						startLine:    currentLine,
 						identifier:   "{{",
 					})
-					fmt.Println("Opeing token")
 					tokenDepth++
 				} else if char == "}" && string(line[c-1]) == "}" {
-					fmt.Println("closing, ", char, c, currentLine, currentCharNum+c)
 
 					for p := len(tokens) - 1; p >= 0; p-- {
 
@@ -69,11 +67,8 @@ func checkHTMLFile(file string, path string, ctx *v8.Context) string {
 						startLine:    currentLine,
 						identifier:   "{!",
 					})
-					fmt.Println("Opeing token")
 					tokenDepth++
 				} else if char == "}" && string(line[c-1]) == "!" {
-					fmt.Println("closing, ", char, c, currentLine, currentCharNum+c)
-
 					for p := len(tokens) - 1; p >= 0; p-- {
 
 						if tokens[p].open && tokens[p].identifier == "{!" {
@@ -92,16 +87,15 @@ func checkHTMLFile(file string, path string, ctx *v8.Context) string {
 	resultNum := 0
 	for p := len(tokens) - 1; p >= 0; p-- {
 		t := tokens[p]
-		//fmt.Println(t.open)
 		if t.open {
 			panic(fmt.Errorf("unclosed {{ at: %v", t.startLine))
 		} else {
 
 			if t.identifier == "{{" {
 				split := strings.Split(lines[t.startLine], "{{")
-				if strings.HasPrefix(split[1], "for") {
+				// if strings.HasPrefix(split[1], "for") {
 
-				}
+				// }
 				option := strings.Split(split[1], "||")
 				js := option[0]
 				if len(option) > 1 {
@@ -112,22 +106,14 @@ func checkHTMLFile(file string, path string, ctx *v8.Context) string {
 							// run js
 							// need to add mutation object to update whne changed
 
-							fmt.Println("JS:", js)
-
 							jsForReload := fmt.Sprintf("var result%v = '';", resultNum) + js + fmt.Sprintf("{result%v += `", resultNum) + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "`}"
-							fmt.Printf("var result = '';" + js + "{result += '" + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "'}")
-
 							ctx.RunScript(jsForReload, "main.js") // any functions previously added to the context can be called
 							// ctx.RunScript("var result = 'hello'; for (let i of [{hello : 'g'},2,3,4]){result += '    <h1></h1>'}", "main.js") // any functions previously added to the context can be called
 							val, _ := ctx.RunScript(fmt.Sprintf("result%v", resultNum), "value.js") // return a value in JavaScript back to Go
-							fmt.Println("Fixed loop: ", val, " //")
-							fmt.Printf("After brackets : %v || \n", file[t.endBracket+2:])
 							file = file[:t.startBracket-1] + fmt.Sprint(val) + file[t.endBracket+1:]
 						} else if strings.HasPrefix(event, "onload") {
 							if strings.HasSuffix(event, "server") {
-								fmt.Println("The path", path)
 								dir, _ := filepath.Split(path)
-								fmt.Println("Startbracket :", t.endBracket)
 								UpdateForLoop(dir, js, t, lines)
 
 							}
@@ -138,22 +124,16 @@ func checkHTMLFile(file string, path string, ctx *v8.Context) string {
 					// need to add mutation object to update whne changed
 
 					jsForReload := fmt.Sprintf("var result%v = '';", resultNum) + js + fmt.Sprintf("{result%v += `", resultNum) + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "`}"
-					fmt.Printf("var result = '';" + js + "{result += '" + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "'}")
-
 					ctx.RunScript(jsForReload, "main.js") // any functions previously added to the context can be called
 					// ctx.RunScript("var result = 'hello'; for (let i of [{hello : 'g'},2,3,4]){result += '    <h1></h1>'}", "main.js") // any functions previously added to the context can be called
 					val, _ := ctx.RunScript(fmt.Sprintf("result%v", resultNum), "value.js") // return a value in JavaScript back to Go
-					fmt.Println("Fixed loop: ", fmt.Sprintf("result%v", resultNum), jsForReload, val, " //")
-					fmt.Printf("After brackets : %v || \n", file[t.endBracket+2:])
 					file = file[:t.startBracket-1] + fmt.Sprint(val) + file[t.endBracket+1:]
 				}
 			} else if t.identifier == "{!" {
 				js := fmt.Sprintf("var result%v = ", resultNum) + string(file[t.startBracket+1:t.endBracket-1])
 				ctx.RunScript(js, fmt.Sprintf("main%v.js", CCount))
-
+				fmt.Println("Found inline js :", js)
 				val, _ := ctx.RunScript(fmt.Sprintf("result%v", resultNum), "value.js")
-				fmt.Println(js)
-
 				file = file[:t.startBracket-1] + fmt.Sprintf("<melte-reload js='%s'>", string(file[t.startBracket+1:t.endBracket-1])) + fmt.Sprint(val) + "</melte-reload>" + file[t.endBracket+1:]
 			}
 
@@ -173,13 +153,9 @@ func UpdateForLoop(dir string, js string, t Token, lines []string) {
 	AddServeFunc(dir+"out.html", func(s string, file string) string {
 		ctx := v8.NewContext()
 		jsForReload := "var result = '';" + js + "{result += '" + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "'}"
-		fmt.Printf("var result = '';" + js + "{result += '" + strings.Join((lines[(t.startLine+1):(t.endLine)]), "") + "'}")
-
 		ctx.RunScript(jsForReload, "main.js") // any functions previously added to the context can be called
 		// ctx.RunScript("var result = 'hello'; for (let i of [{hello : 'g'},2,3,4]){result += '    <h1></h1>'}", "main.js") // any functions previously added to the context can be called
 		val, _ := ctx.RunScript("result", "value.js") // return a value in JavaScript back to Go
-		fmt.Println("Fixed loop: ", t.endBracket, " //")
-		fmt.Printf("After brackets : %v || \n", file[t.endBracket+2:])
 		file = file[:t.startBracket-1] + fmt.Sprint(val) + file[t.endBracket+1:]
 
 		return file

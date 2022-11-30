@@ -24,7 +24,12 @@ func RunInitialScripts(path string, file string) {
 
 func runJS(n *html.Node, ctx *v8.Context) {
 	if n.Data == "script" {
-		ctx.RunScript(n.FirstChild.Data, fmt.Sprintf("v%v.js", CCount))
+		for _, a := range n.Attr {
+			if a.Key == "ssr" {
+				ctx.RunScript(n.FirstChild.Data, fmt.Sprintf("v%v.js", CCount))
+				break
+			}
+		}
 	}
 	for child := n.FirstChild; child != nil; child = child.NextSibling {
 		runJS(child, ctx)
