@@ -76,3 +76,11 @@ context is messed up for routes/out.html : creates new ctx for /melte-framework/
 on first load weird stuff happens
 
 f
+
+
+global variable set whith
+
+//=keep state js
+let h = 1
+
+needs to be saved whe nchanged
