@@ -119,11 +119,13 @@ func tempRender(path string, root *html.Node) {
 }
 
 var Scripts []html.Node
+var ExternalScripts []string
 var HeadScripts []html.Node
 var ScriptIDs []string
 var slotInsert []*html.Node
 
 func replace(n *html.Node, pagePath string, ctx *v8go.Context) {
+	fmt.Println(n.Data)
 	CCount++
 	if n.Type == html.ElementNode {
 		wd, err := os.Getwd()
@@ -171,37 +173,55 @@ func replace(n *html.Node, pagePath string, ctx *v8go.Context) {
 						}
 
 					}
+
 					for _, i := range child.Attr {
 						if i.Key == "type" && i.Val == "module" {
-							scriptComponent := &html.Node{
-								Data:     "script",
-								Type:     html.ElementNode,
-								DataAtom: atom.Script,
-								Attr:     child.Attr,
-							}
-							for child := child.FirstChild; child != nil; child = child.NextSibling {
-								newScript := &html.Node{
-									Data: OutScript + child.Data,
-									Type: html.TextNode,
+							isExternal := false
+							p := ""
+							for _, k := range child.Attr {
+								if k.Key == "src" {
+									isExternal = true
+									p = k.Val
+									k.Val += ".melte-out.js"
 								}
-								scriptComponent.AppendChild(newScript)
 							}
-							scriptComponent.Attr = append(scriptComponent.Attr, html.Attribute{
-								Key: "melte-docpos",
-								Val: pagePath,
-							})
+							fmt.Println("External")
 
-							child.RemoveChild(child.FirstChild)
-							if err != nil {
-								panic(err)
-							}
-							Scripts = append(Scripts, *scriptComponent)
-							ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
-							if child.Parent != nil {
-								child.Parent.RemoveChild(child)
+							if isExternal {
+								ExternalScripts = append(ExternalScripts, p)
+								continue c
+							} else {
+								scriptComponent := &html.Node{
+									Data:     "script",
+									Type:     html.ElementNode,
+									DataAtom: atom.Script,
+									Attr:     child.Attr,
+								}
+								for child := child.FirstChild; child != nil; child = child.NextSibling {
+									newScript := &html.Node{
+										Data: OutScript + child.Data,
+										Type: html.TextNode,
+									}
+									scriptComponent.AppendChild(newScript)
+								}
+								scriptComponent.Attr = append(scriptComponent.Attr, html.Attribute{
+									Key: "melte-docpos",
+									Val: pagePath,
+								})
 
+								child.RemoveChild(child.FirstChild)
+								if err != nil {
+									panic(err)
+								}
+								Scripts = append(Scripts, *scriptComponent)
+								ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
+								if child.Parent != nil {
+									child.Parent.RemoveChild(child)
+
+								}
+								continue c
 							}
-							continue c
+
 						}
 					}
 					scriptData += child.FirstChild.Data
@@ -290,6 +310,7 @@ func replaceSlot(n *html.Node, pagePath string, rootCopy *html.Node, cont bool, 
 		c:
 			for _, child := range component {
 				if child.Data == "script" {
+
 					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+fmt.Sprintf("%d", CCount))
 
 					// this doesnt loop over scripts in html file: fix
@@ -302,35 +323,50 @@ func replaceSlot(n *html.Node, pagePath string, rootCopy *html.Node, cont bool, 
 					}
 					for _, i := range child.Attr {
 						if i.Key == "type" && i.Val == "module" {
-							scriptComponent := &html.Node{
-								Data:     "script",
-								Type:     html.ElementNode,
-								DataAtom: atom.Script,
-								Attr:     child.Attr,
-							}
-							for child := child.FirstChild; child != nil; child = child.NextSibling {
-								newScript := &html.Node{
-									Data: OutScript + child.Data,
-									Type: html.TextNode,
+							isExternal := false
+							p := ""
+							for _, k := range child.Attr {
+								if k.Key == "src" {
+									isExternal = true
+									p = k.Val
+									k.Val += ".melte-out.js"
 								}
-								scriptComponent.AppendChild(newScript)
 							}
-							scriptComponent.Attr = append(scriptComponent.Attr, html.Attribute{
-								Key: "melte-docpos",
-								Val: pagePath,
-							})
+							if isExternal {
+								fmt.Println("Etefner")
+								ExternalScripts = append(ExternalScripts, p)
+								continue c
+							} else {
+								scriptComponent := &html.Node{
+									Data:     "script",
+									Type:     html.ElementNode,
+									DataAtom: atom.Script,
+									Attr:     child.Attr,
+								}
+								for child := child.FirstChild; child != nil; child = child.NextSibling {
+									newScript := &html.Node{
+										Data: OutScript + child.Data,
+										Type: html.TextNode,
+									}
+									scriptComponent.AppendChild(newScript)
+								}
+								scriptComponent.Attr = append(scriptComponent.Attr, html.Attribute{
+									Key: "melte-docpos",
+									Val: pagePath,
+								})
 
-							child.RemoveChild(child.FirstChild)
-							if err != nil {
-								panic(err)
-							}
-							Scripts = append(Scripts, *scriptComponent)
-							ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
-							if child.Parent != nil {
-								child.Parent.RemoveChild(child)
+								child.RemoveChild(child.FirstChild)
+								if err != nil {
+									panic(err)
+								}
+								Scripts = append(Scripts, *scriptComponent)
+								ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
+								if child.Parent != nil {
+									child.Parent.RemoveChild(child)
 
+								}
+								continue c
 							}
-							continue c
 						}
 					}
 					scriptData += OutScript + child.Data + "/n"

@@ -4,10 +4,12 @@
 </script>
 <h1>Hello this is the shop page</h1>
 <a href="/">Home page</a>
-<h1>hello {!hello!}</h1>
 {{for (let i of [1,2,3,4])
-    <button></button>
-    <hi>${i}</hi>
+    {{for (let i of [1,2,3,4])
+        hello
+    }}
 }}
+<h1>hello {!hello!}</h1>
+
 <!-- If i have counter then it should be able to use globally state kept varibales between routes -->
 <!-- <counter val={count}></counter> -->

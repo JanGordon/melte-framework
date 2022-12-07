@@ -1,49 +1,11 @@
 <html><head><script ssr="">var hello = "world"
     //anything in an ssr script will be defined at build time
 </script>
-<script>var _, counthi116 =  10, countd = 10, counthi216 =  10, countd = 10, counthi316 =  10, countd = 10, counthi416 =  10, countd = 10</script><script src="/clientSideRouting/out.js" defer=""></script><script src="/hotReload/WebSocket.js"></script></head><body><h1>Hello this is the shop page</h1>
+<script>var _</script><script src="/clientSideRouting/out.js" defer=""></script><script src="/hotReload/WebSocket.js"></script></head><body><h1>Hello this is the shop page</h1>
 <a href="/">Home page</a>
-<h1>hello <melte-reload js="hello">world</melte-reload></h1>
-    <button></button>    <hi melte-id="hi116">
+    {{for (let i of [1,2,3,4])        hello    }}    {{for (let i of [1,2,3,4])        hello    }}    {{for (let i of [1,2,3,4])        hello    }}    {{for (let i of [1,2,3,4])        hello    }}lo
+}}
+<h1>hello <melte-reload js="var result0 = hello">world</melte-reload></h1>
 
-<p>Hello world</p>
-<div id="s"><melte-reload js="count">10</melte-reload></div>
-<button>+</button>
-<div>Hello World
-    <p>hi</p>
-    <h1><slotted melte-id="slot108">1</slotted></h1>
-    <div>Hello is this working?</div>
-</div>
-   </hi>    <button></button>    <hi melte-id="hi216">
-
-<p>Hello world</p>
-<div id="s"><melte-reload js="count">10</melte-reload></div>
-<button>+</button>
-<div>Hello World
-    <p>hi</p>
-    <h1><slotted melte-id="slot208">2</slotted></h1>
-    <div>Hello is this working?</div>
-</div>
-   </hi>    <button></button>    <hi melte-id="hi316">
-
-<p>Hello world</p>
-<div id="s"><melte-reload js="count">10</melte-reload></div>
-<button>+</button>
-<div>Hello World
-    <p>hi</p>
-    <h1><slotted melte-id="slot308">3</slotted></h1>
-    <div>Hello is this working?</div>
-</div>
-   </hi>    <button></button>    <hi melte-id="hi416">
-
-<p>Hello world</p>
-<div id="s"><melte-reload js="count">10</melte-reload></div>
-<button>+</button>
-<div>Hello World
-    <p>hi</p>
-    <h1><slotted melte-id="slot408">4</slotted></h1>
-    <div>Hello is this working?</div>
-</div>
-   </hi>
 <!-- If i have counter then it should be able to use globally state kept varibales between routes -->
 <!-- <counter val={count}></counter> --></body><script src="/thing/out.js"></script></html>

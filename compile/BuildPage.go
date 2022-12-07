@@ -40,66 +40,23 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 			root.AppendChild(scriptC)
 			//fmt.Println("Adding Script", Scripts)
 		} else {
-			importRemovedLines := ""
-			scriptData := Scripts[script].FirstChild.Data
-			docPos := ""
-			for _, a := range Scripts[script].Attr {
-				if a.Key == "melte-docpos" {
-					docPos = a.Val
-				}
-			}
-			for _, a := range Scripts[script].Attr {
-				if a.Key == "src" {
-					scriptDataNew, _ := os.ReadFile(filepath.Join(docPos, a.Val))
-					scriptData = string(scriptDataNew)
-					// should also use aliases
-					//make sure this file is opened with write state
-					// ./ should be realtive to
-				}
-			}
-			lines := strings.Split(scriptData, "\n")
-			customCount := 0
-			for lineIndex, line := range lines {
-				l := strings.Trim(line, " ")
-				if strings.HasPrefix(strings.TrimSpace(line), "import") {
-					importLines += fmt.Sprintf("%s\n", line)
-				} else if strings.HasPrefix(l, "//=") {
-					l = strings.Trim(l, "//=")
-
-					if strings.HasPrefix(l, "keep state: ") {
-						l = strings.TrimSpace(strings.Replace(l, "keep state: ", "", 1))
-						//fmt.Println("Found melte custom : ", l, lines[lineIndex+1])
-
-						if strings.HasPrefix(l, "js") {
-							decLine := strings.TrimSpace(lines[lineIndex+1])
-							if strings.HasPrefix(decLine, "var") {
-								HeadScript += strings.Replace(decLine, "var", ",", 1)
-								lines[lineIndex+1] = ""
-
-							} else if strings.HasPrefix(decLine, "let") {
-								varName := strings.Split(strings.Replace(decLine, "let", ",", 1), "=")
-								HeadScript += ", " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1) + " = " + varName[1]
-								//fmt.Println("adding this to head: " + "let " + strings.Replace(varName[0], ", ", "", 1) + " = " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1))
-								lines[lineIndex+1] = "let " + strings.Replace(varName[0], ", ", "", 1) + "=" + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1)
-								fmt.Println("added private component variable", lines[lineIndex+1])
-							}
-						} else if strings.HasPrefix(l, "url") {
-							// jsDict := "{}"
-							// let js modify url when var chnage
-							// when url with ?variable=10 router should serve js with variable embedded in js
-							// and if possible update the html fragments with reactive html in them before serving
-						}
-						customCount++
-					}
-				} else {
-					//fmt.Println(line)
-					importRemovedLines += line + "\n"
-				}
-			}
-
-			scriptExceptImports = scriptExceptImports + fmt.Sprintf("{\n// script for %s\n %s}", fmt.Sprintf("%s", ScriptIDs[script]), importRemovedLines)
+			s, i, h := transJS(scriptExceptImports, importLines, HeadScript, Scripts[script].FirstChild.Data, script)
+			scriptExceptImports += fmt.Sprintf("{\n// script for %s\n %s}", fmt.Sprintf("%s", ScriptIDs[script]), s)
+			importLines += i
+			HeadScript += h
 		}
 		// newPage.AppendChild(scriptC)
+
+	}
+	for _, script := range ExternalScripts {
+		data, err := os.ReadFile(script)
+		if err != nil {
+			panic(err)
+		}
+		s, i, h := transJS("", "", HeadScript, string(data), 0)
+		HeadScript += h
+		fmt.Println("Building external scripts")
+		BuildScriptFile(i+"\n"+s, script+".melte-out.js")
 
 	}
 	HeadScriptNode := &html.Node{
@@ -185,4 +142,64 @@ func stringInSlice(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+func transJS(importRemovedLines string, importLines string, HeadScript string, scriptData string, scriptIndex int) (string, string, string) {
+
+	// docPos := ""
+	// for _, a := range Scripts[script].Attr {
+	// 	if a.Key == "melte-docpos" {
+	// 		docPos = a.Val
+	// 	}
+	// }
+	// for _, a := range Scripts[script].Attr {
+	// 	if a.Key == "src" {
+	// 		scriptDataNew, _ := os.ReadFile(filepath.Join(docPos, a.Val))
+	// 		scriptData = string(scriptDataNew)
+	// 		// should also use aliases
+	// 		//make sure this file is opened with write state
+	// 		// ./ should be realtive to
+	// 	}
+	// }
+	lines := strings.Split(scriptData, "\n")
+	customCount := 0
+	for lineIndex, line := range lines {
+		l := strings.Trim(line, " ")
+		if strings.HasPrefix(strings.TrimSpace(line), "import") {
+			importLines += fmt.Sprintf("%s\n", line)
+		} else if strings.HasPrefix(l, "//=") {
+			l = strings.Trim(l, "//=")
+
+			if strings.HasPrefix(l, "keep state: ") {
+				l = strings.TrimSpace(strings.Replace(l, "keep state: ", "", 1))
+				//fmt.Println("Found melte custom : ", l, lines[lineIndex+1])
+
+				if strings.HasPrefix(l, "js") {
+					decLine := strings.TrimSpace(lines[lineIndex+1])
+					if strings.HasPrefix(decLine, "var") {
+						HeadScript += strings.Replace(decLine, "var", ",", 1)
+						lines[lineIndex+1] = ""
+
+					} else if strings.HasPrefix(decLine, "let") {
+						varName := strings.Split(strings.Replace(decLine, "let", ",", 1), "=")
+						HeadScript += ", " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[scriptIndex], "out-", "", 1), ".js", "", 1) + " = " + varName[1]
+						//fmt.Println("adding this to head: " + "let " + strings.Replace(varName[0], ", ", "", 1) + " = " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1))
+						lines[lineIndex+1] = "let " + strings.Replace(varName[0], ", ", "", 1) + "=" + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[scriptIndex], "out-", "", 1), ".js", "", 1)
+						fmt.Println("added private component variable", lines[lineIndex+1])
+					}
+				} else if strings.HasPrefix(l, "url") {
+					// jsDict := "{}"
+					// let js modify url when var chnage
+					// when url with ?variable=10 router should serve js with variable embedded in js
+					// and if possible update the html fragments with reactive html in them before serving
+				}
+				customCount++
+			}
+		} else {
+			//fmt.Println(line)
+			importRemovedLines += line + "\n"
+		}
+	}
+
+	return importRemovedLines, importLines, HeadScript
 }
