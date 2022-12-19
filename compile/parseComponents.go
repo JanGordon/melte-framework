@@ -35,57 +35,46 @@ func getContext(path string) *v8go.Context {
 }
 func ReplaceComponentWithHTML(root html.Node, findLayouts bool, pagePath string) html.Node {
 	CCount++
-	// var css []string
 	var ctx = getContext(pagePath)
 	replace(&root, pagePath, ctx)
-	if findLayouts {
-		dir := filepath.Dir(filepath.Join(pagePath))
-		files, err := os.ReadDir(dir)
-		if err != nil {
-			panic(fmt.Errorf("failed to read directory"))
-		}
-	out:
-		for {
-			for _, f := range files {
-				if !f.IsDir() && strings.HasPrefix(f.Name(), "layout") {
-					file, err := os.ReadFile(filepath.Join(dir, f.Name()))
-					if err != nil {
-						panic(fmt.Errorf("%s: missing or moved", pagePath))
-					}
-					tempRender(pagePath, &root)
-					newRootOut, err := os.ReadFile(pagePath)
-					if err != nil {
-						panic(fmt.Errorf("%s: missing or moved", pagePath))
-					}
-					parsed := ParseHTMLStringAsComponent(string(newRootOut), pagePath)
-					for _, child := range parsed {
-						child.Parent.RemoveChild(child)
-					}
-					root = ReplaceLayoutWithHTML(ParseHTMLFragmentFromString(string(file), pagePath), parsed, pagePath)
-					break out
-				}
+	// if findLayouts {
+	// 	dir := filepath.Dir(filepath.Join(pagePath))
+	// 	files, err := os.ReadDir(dir)
+	// 	if err != nil {
+	// 		panic(fmt.Errorf("failed to read directory"))
+	// 	}
+	// out:
+	// 	for {
+	// 		for _, f := range files {
+	// 			if !f.IsDir() && strings.HasPrefix(f.Name(), "layout") {
+	// 				file, err := os.ReadFile(filepath.Join(dir, f.Name()))
+	// 				if err != nil {
+	// 					panic(fmt.Errorf("%s: missing or moved", pagePath))
+	// 				}
+	// 				tempRender(pagePath, &root)
+	// 				newRootOut, err := os.ReadFile(pagePath)
+	// 				if err != nil {
+	// 					panic(fmt.Errorf("%s: missing or moved", pagePath))
+	// 				}
+	// 				parsed := ParseHTMLStringAsComponent(string(newRootOut), pagePath)
+	// 				for _, child := range parsed {
+	// 					child.Parent.RemoveChild(child)
+	// 				}
+	// 				root = ReplaceLayoutWithHTML(ParseHTMLFragmentFromString(string(file), pagePath), parsed, pagePath)
+	// 				break out
+	// 			}
 
-			}
-			if strings.HasSuffix(dir, "/routes") {
-				break out
-			}
-			dir = filepath.Dir(filepath.Join(dir))
-			files, err = os.ReadDir(dir)
-			if err != nil {
-				panic(err)
-			}
-		}
-	}
-
-	return root
-}
-
-func ReplaceLayoutWithHTML(root html.Node, slotInserts []*html.Node, pagePath string) html.Node {
-	CCount++
-	var ctx = getContext(pagePath)
-	newRoot := root
-	slotInsert = slotInserts
-	replaceSlot((&root), pagePath, &newRoot, false, ctx)
+	// 		}
+	// 	if strings.HasSuffix(dir, "/routes") {
+	// 		break out
+	// 	}
+	// 	dir = filepath.Dir(filepath.Join(dir))
+	// 	files, err = os.ReadDir(dir)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// }
+	// }
 	return root
 }
 
@@ -95,6 +84,7 @@ func ReplaceCustomComponentWithHTML(root []*html.Node, pagePath string) []*html.
 		replace(child, pagePath, ctx)
 		CCount++
 	}
+
 	return root
 }
 
@@ -121,12 +111,13 @@ func tempRender(path string, root *html.Node) {
 
 var Scripts []html.Node
 var ExternalScripts []string
-var HeadScripts []html.Node
+
 var ScriptIDs []string
 var slotInsert []*html.Node
+var CSST []string
 
 func replace(n *html.Node, pagePath string, ctx *v8go.Context) {
-	fmt.Println(n.Data)
+	// fmt.Println(n.Data)
 	CCount++
 	if n.Type == html.ElementNode {
 		wd, err := os.Getwd()
@@ -152,8 +143,9 @@ func replace(n *html.Node, pagePath string, ctx *v8go.Context) {
 			for _, child := range slotInsert {
 				n.RemoveChild(child)
 			}
+			fmt.Println("css beore", CSST)
 			component := ReplaceCustomComponentWithHTML(ParseHTMLAsComponent(filepath.Join(wd, "components", n.Data+".melte")), filepath.Join(wd, "components")) // adds components scripts to Scripts
-
+			fmt.Println("after", CSST)
 			n.Attr = append(n.Attr, html.Attribute{
 				Key: "melte-id",
 				Val: n.Data + fmt.Sprintf("%d", CCount),
@@ -164,6 +156,8 @@ func replace(n *html.Node, pagePath string, ctx *v8go.Context) {
 			scriptData := OutScript
 		c:
 			for _, child := range component {
+				// fmt.Println("CSS: ", CSST)
+				// fmt.Println("child.data", child.Data)
 				if child.Data == "style" {
 					internalStyle := ""
 					for _, attr := range child.Attr {
@@ -177,6 +171,12 @@ func replace(n *html.Node, pagePath string, ctx *v8go.Context) {
 					}
 					if internalStyle == "" {
 						internalStyle = child.FirstChild.Data
+					}
+					CSST = makeCSS(CSST, n.Data, internalStyle, n.Data+fmt.Sprintf("%d", CCount))
+					// fmt.Println("CSS: ", CSST)
+					if child.Parent != nil {
+						child.Parent.RemoveChild(child)
+
 					}
 
 				}
@@ -202,7 +202,7 @@ func replace(n *html.Node, pagePath string, ctx *v8go.Context) {
 									k.Val += ".melte-out.js"
 								}
 							}
-							fmt.Println("External")
+							// fmt.Println("External")
 
 							if isExternal {
 								ExternalScripts = append(ExternalScripts, p)
@@ -288,154 +288,156 @@ func replace(n *html.Node, pagePath string, ctx *v8go.Context) {
 	for child := n.FirstChild; child != nil; child = child.NextSibling {
 		replace(child, pagePath, ctx)
 	}
+	// fmt.Println("CSS: ")
+
 }
 
-func replaceSlot(n *html.Node, pagePath string, rootCopy *html.Node, cont bool, ctx *v8go.Context) {
-	CCount++
-	done := cont
-	if n.Type == html.ElementNode {
-		wd, err := os.Getwd()
-		if err != nil {
-			panic("failed to get working directory")
-		}
-		// seeing if custom component exists
-		_, err = os.ReadFile(filepath.Join(wd, "components", n.Data+".melte"))
-		if err == nil {
-			// found a custom component so need to set currentSlot to slot
-			slotInsert = nil
-			c := n.FirstChild
-			for {
-				slotInsert = append(slotInsert, c)
-				if c != n.LastChild {
-					c = c.NextSibling
+// func replaceSlot(n *html.Node, pagePath string, rootCopy *html.Node, cont bool, ctx *v8go.Context) {
+// 	CCount++
+// 	done := cont
+// 	if n.Type == html.ElementNode {
+// 		wd, err := os.Getwd()
+// 		if err != nil {
+// 			panic("failed to get working directory")
+// 		}
+// 		// seeing if custom component exists
+// 		_, err = os.ReadFile(filepath.Join(wd, "components", n.Data+".melte"))
+// 		if err == nil {
+// 			// found a custom component so need to set currentSlot to slot
+// 			slotInsert = nil
+// 			c := n.FirstChild
+// 			for {
+// 				slotInsert = append(slotInsert, c)
+// 				if c != n.LastChild {
+// 					c = c.NextSibling
 
-				} else {
-					break
-				}
+// 				} else {
+// 					break
+// 				}
 
-			}
-			for _, child := range slotInsert {
-				n.RemoveChild(child)
-			}
-			component := ReplaceCustomComponentWithHTML(ParseHTMLAsComponent(filepath.Join(wd, "components", n.Data+".melte")), filepath.Join(wd, "components")) // adds components scripts to Scripts
+// 			}
+// 			for _, child := range slotInsert {
+// 				n.RemoveChild(child)
+// 			}
+// 			component := ReplaceCustomComponentWithHTML(ParseHTMLAsComponent(filepath.Join(wd, "components", n.Data+".melte")), filepath.Join(wd, "components")) // adds components scripts to Scripts
 
-			n.Attr = append(n.Attr, html.Attribute{
-				Key: "melte-id",
-				Val: n.Data + fmt.Sprintf("%d", CCount),
-			})
-			scriptData := ""
-		c:
-			for _, child := range component {
-				if child.Data == "script" {
+// 			n.Attr = append(n.Attr, html.Attribute{
+// 				Key: "melte-id",
+// 				Val: n.Data + fmt.Sprintf("%d", CCount),
+// 			})
+// 			scriptData := ""
+// 		c:
+// 			for _, child := range component {
+// 				if child.Data == "script" {
 
-					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+fmt.Sprintf("%d", CCount))
+// 					OutScript := fmt.Sprintf(`const SELF = document.querySelector("[melte-id='%s']")`, n.Data+fmt.Sprintf("%d", CCount))
 
-					// this doesnt loop over scripts in html file: fix
-					// We need to move the script to end and add module tag
-					for _, a := range child.Attr {
-						if a.Key == "ssr" {
-							ctx.RunScript(OutScript+child.FirstChild.Data, fmt.Sprintf("%v.js", CCount))
-						}
+// 					// this doesnt loop over scripts in html file: fix
+// 					// We need to move the script to end and add module tag
+// 					for _, a := range child.Attr {
+// 						if a.Key == "ssr" {
+// 							ctx.RunScript(OutScript+child.FirstChild.Data, fmt.Sprintf("%v.js", CCount))
+// 						}
 
-					}
-					for _, i := range child.Attr {
-						if i.Key == "type" && i.Val == "module" {
-							isExternal := false
-							p := ""
-							for _, k := range child.Attr {
-								if k.Key == "src" {
-									isExternal = true
-									p = k.Val
-									k.Val += ".melte-out.js"
-								}
-							}
-							if isExternal {
-								fmt.Println("Etefner")
-								ExternalScripts = append(ExternalScripts, p)
-								continue c
-							} else {
-								scriptComponent := &html.Node{
-									Data:     "script",
-									Type:     html.ElementNode,
-									DataAtom: atom.Script,
-									Attr:     child.Attr,
-								}
-								for child := child.FirstChild; child != nil; child = child.NextSibling {
-									newScript := &html.Node{
-										Data: OutScript + child.Data,
-										Type: html.TextNode,
-									}
-									scriptComponent.AppendChild(newScript)
-								}
-								scriptComponent.Attr = append(scriptComponent.Attr, html.Attribute{
-									Key: "melte-docpos",
-									Val: pagePath,
-								})
+// 					}
+// 					for _, i := range child.Attr {
+// 						if i.Key == "type" && i.Val == "module" {
+// 							isExternal := false
+// 							p := ""
+// 							for _, k := range child.Attr {
+// 								if k.Key == "src" {
+// 									isExternal = true
+// 									p = k.Val
+// 									k.Val += ".melte-out.js"
+// 								}
+// 							}
+// 							if isExternal {
+// 								fmt.Println("Etefner")
+// 								ExternalScripts = append(ExternalScripts, p)
+// 								continue c
+// 							} else {
+// 								scriptComponent := &html.Node{
+// 									Data:     "script",
+// 									Type:     html.ElementNode,
+// 									DataAtom: atom.Script,
+// 									Attr:     child.Attr,
+// 								}
+// 								for child := child.FirstChild; child != nil; child = child.NextSibling {
+// 									newScript := &html.Node{
+// 										Data: OutScript + child.Data,
+// 										Type: html.TextNode,
+// 									}
+// 									scriptComponent.AppendChild(newScript)
+// 								}
+// 								scriptComponent.Attr = append(scriptComponent.Attr, html.Attribute{
+// 									Key: "melte-docpos",
+// 									Val: pagePath,
+// 								})
 
-								child.RemoveChild(child.FirstChild)
-								if err != nil {
-									panic(err)
-								}
-								Scripts = append(Scripts, *scriptComponent)
-								ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
-								if child.Parent != nil {
-									child.Parent.RemoveChild(child)
+// 								child.RemoveChild(child.FirstChild)
+// 								if err != nil {
+// 									panic(err)
+// 								}
+// 								Scripts = append(Scripts, *scriptComponent)
+// 								ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
+// 								if child.Parent != nil {
+// 									child.Parent.RemoveChild(child)
 
-								}
-								continue c
-							}
-						}
-					}
-					scriptData += OutScript + child.Data + "/n"
-					if child.Parent != nil {
-						child.Parent.RemoveChild(child)
+// 								}
+// 								continue c
+// 							}
+// 						}
+// 					}
+// 					scriptData += OutScript + child.Data + "/n"
+// 					if child.Parent != nil {
+// 						child.Parent.RemoveChild(child)
 
-					}
-				} else {
-					n.AppendChild(child)
-				}
-			}
-			if scriptData != "" {
-				scriptComponent := &html.Node{
-					Data:     "script",
-					Type:     html.ElementNode,
-					DataAtom: atom.Script,
-				}
-				newScript := &html.Node{
-					Data: scriptData,
-					Type: html.TextNode,
-				}
-				scriptComponent.AppendChild(newScript)
+// 					}
+// 				} else {
+// 					n.AppendChild(child)
+// 				}
+// 			}
+// 			if scriptData != "" {
+// 				scriptComponent := &html.Node{
+// 					Data:     "script",
+// 					Type:     html.ElementNode,
+// 					DataAtom: atom.Script,
+// 				}
+// 				newScript := &html.Node{
+// 					Data: scriptData,
+// 					Type: html.TextNode,
+// 				}
+// 				scriptComponent.AppendChild(newScript)
 
-				scriptComponent.Attr = append(scriptComponent.Attr, html.Attribute{
-					Key: "melte-docpos",
-					Val: pagePath,
-				})
-				Scripts = append(Scripts, *scriptComponent)
-				ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
+// 				scriptComponent.Attr = append(scriptComponent.Attr, html.Attribute{
+// 					Key: "melte-docpos",
+// 					Val: pagePath,
+// 				})
+// 				Scripts = append(Scripts, *scriptComponent)
+// 				ScriptIDs = append(ScriptIDs, fmt.Sprintf("out-%s%d.js", n.Data, CCount))
 
-			}
-		}
-		if n.Data == "slot" && !isChildOf(n, "slot") && !done {
-			n.Attr = append(n.Attr, html.Attribute{
-				Key: "melte-id",
-				Val: n.Data + fmt.Sprintf("%d", CCount),
-			})
-			for _, i := range slotInsert {
-				n.AppendChild(i)
+// 			}
+// 		}
+// 		if n.Data == "slot" && !isChildOf(n, "slot") && !done {
+// 			n.Attr = append(n.Attr, html.Attribute{
+// 				Key: "melte-id",
+// 				Val: n.Data + fmt.Sprintf("%d", CCount),
+// 			})
+// 			for _, i := range slotInsert {
+// 				n.AppendChild(i)
 
-			}
-			n.Data = "slotted"
-		}
-	}
+// 			}
+// 			n.Data = "slotted"
+// 		}
+// 	}
 
-	for child := n.FirstChild; child != nil; child = child.NextSibling {
-		replaceSlot(child, pagePath, rootCopy, done, ctx)
-		if child.Data == "slot" {
-			break
-		}
-	}
-}
+// 	for child := n.FirstChild; child != nil; child = child.NextSibling {
+// 		replaceSlot(child, pagePath, rootCopy, done, ctx)
+// 		if child.Data == "slot" {
+// 			break
+// 		}
+// 	}
+// }
 
 func ParseHTMLFragmentFromPath(path string) html.Node {
 	file, err := os.ReadFile(path)

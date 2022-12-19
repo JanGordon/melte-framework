@@ -23,4 +23,10 @@
     <h1><slot></slot></h1>
     <div>Hello is this working?</div>
 </div>
+
+<style>
+    button {
+        background-color: blue;
+    }
+</style>
    

@@ -326,7 +326,8 @@ func visitPath(path string, di fs.DirEntry, err error) error {
 
 	dir, filename := filepath.Split(path)
 	if filepath.Ext(path) == ".html" && filename != "out.html" && !strings.HasPrefix(filename, "layout") {
-		compile.BuildPage(compile.ReplaceComponentWithHTML(compile.ParseHTMLFragmentFromPath(path), false, path), dir+"out.html", dir, false, true, true)
+		h := compile.ReplaceComponentWithHTML(compile.ParseHTMLFragmentFromPath(path), false, path)
+		compile.BuildPage(h, dir+"out.html", dir, false, true, true)
 	}
 	return nil
 }

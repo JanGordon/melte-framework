@@ -47,7 +47,7 @@ func checkHTMLFile(file string, path string, ctx *v8.Context) string {
 						startLine:    currentLine,
 						identifier:   "{{",
 					})
-					fmt.Println("adding for loop", currentCharNum+c)
+					// fmt.Println("adding for loop", currentCharNum+c)
 
 					tokenDepth++
 				} else if char == "}" && string(line[c-1]) == "}" {
@@ -138,21 +138,21 @@ func checkHTMLFile(file string, path string, ctx *v8.Context) string {
 					ctx.RunScript(jsForReload, "main.js") // any functions previously added to the context can be called
 					// ctx.RunScript("var result = 'hello'; for (let i of [{hello : 'g'},2,3,4]){result += '    <h1></h1>'}", "main.js") // any functions previously added to the context can be called
 					val, _ := ctx.RunScript(fmt.Sprintf("result%v", resultNum), "value.js") // return a value in JavaScript back to Go
-					fmt.Println(offset)
+					// fmt.Println(offset)
 					ofLen := t.endBracket + 1 - t.startBracket - 1
 					lineOfLen := strings.Count(file[t.startBracket-1:t.endBracket+1], "\n")
 					file = file[:t.startBracket-1] + fmt.Sprint(val) + file[t.endBracket+1:]
 					offset = len(fmt.Sprint(val)) - ofLen
 					lineOffset = strings.Count(fmt.Sprint(val), "\n") - lineOfLen
-					fmt.Println(tokens[1].endBracket)
+					// fmt.Println(tokens[1].endBracket)
 					computeOffsets(tokens, offset, lineOffset, t)
-					fmt.Println(offset)
+					// fmt.Println(offset)
 					// indexes of tokens become messed up
 				}
 			} else if t.identifier == "{!" {
 				js := fmt.Sprintf("var result%v = ", resultNum) + string(file[t.startBracket+1:t.endBracket-1])
 				ctx.RunScript(js, fmt.Sprintf("main%v.js", CCount))
-				fmt.Println("Found inline js :", js)
+				// fmt.Println("Found inline js :", js)
 				val, _ := ctx.RunScript(fmt.Sprintf("result%v", resultNum), "value.js")
 				ofLen := len(file[t.startBracket-1+offset : t.endBracket+1+offset])
 				lineOfLen := strings.Count(file[t.startBracket-1+offset:t.endBracket+1+offset], "\n")
@@ -161,7 +161,7 @@ func checkHTMLFile(file string, path string, ctx *v8.Context) string {
 				lineOffset = strings.Count(fmt.Sprintf("<melte-reload js='%s'>", js)+fmt.Sprint(val)+"</melte-reload>", "\n") - lineOfLen
 				computeOffsets(tokens, offset, lineOffset, t)
 				// offset is only needed on compoents below point of addition
-				fmt.Printf("oflen = %v, ofc = %v", ofLen, len(fmt.Sprintf("<melte-reload js='%s'>", js)+fmt.Sprint(val)+"</melte-reload>"))
+				// fmt.Printf("oflen = %v, ofc = %v", ofLen, len(fmt.Sprintf("<melte-reload js='%s'>", js)+fmt.Sprint(val)+"</melte-reload>"))
 			}
 
 			// file = strings.ReplaceAll(file, strings.Join((lines[(t.startLine):(t.endLine)]), "\n")+"\n}}", fmt.Sprint(val))
@@ -173,21 +173,21 @@ func checkHTMLFile(file string, path string, ctx *v8.Context) string {
 }
 
 func computeOffsets(tokens []Token, offset int, lineOffset int, currentToken Token) {
-	for i, t := range tokens {
+	for _, t := range tokens {
 		if t.startBracket > currentToken.endBracket {
-			fmt.Println(t.startBracket)
+			// fmt.Println(t.startBracket)
 			t.startBracket = t.startBracket + offset
-			fmt.Println(t.startBracket)
+			// fmt.Println(t.startBracket)
 			t.startLine = t.startLine + lineOffset
-			fmt.Println("Adding offset of :", offset, "to", t.identifier, i, "due to", currentToken.identifier)
+			// fmt.Println("Adding offset of :", offset, "to", t.identifier, i, "due to", currentToken.identifier)
 		}
 		if t.endBracket > currentToken.endBracket {
-			fmt.Println(t.endBracket)
+			// fmt.Println(t.endBracket)
 
 			t.endBracket = t.endBracket + offset
-			fmt.Println(t.endBracket)
+			// fmt.Println(t.endBracket)
 			t.endLine = t.endLine + lineOffset
-			fmt.Println("Adding offset of :", offset, "to end of", t.identifier, i, "due to", currentToken.identifier)
+			// fmt.Println("Adding offset of :", offset, "to end of", t.identifier, i, "due to", currentToken.identifier)
 
 		}
 	}

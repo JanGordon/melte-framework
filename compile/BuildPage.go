@@ -11,6 +11,7 @@ import (
 )
 
 func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, dev bool, findLayouts bool) {
+
 	// This function should build a full html page from the list of Scripts and the component
 	//fmt.Println("Building the page: out.html and all scripts")
 	// c := getContext(inPath)
@@ -43,7 +44,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 			s, i, h := transJS(scriptExceptImports, importLines, HeadScript, Scripts[script].FirstChild.Data, script)
 			scriptExceptImports += fmt.Sprintf("{\n// script for %s\n %s}", fmt.Sprintf("%s", ScriptIDs[script]), s)
 			importLines += i
-			HeadScript += h
+			HeadScript = h
 		}
 		// newPage.AppendChild(scriptC)
 
@@ -54,7 +55,7 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 			panic(err)
 		}
 		s, i, h := transJS("", "", HeadScript, string(data), 0)
-		HeadScript += h
+		HeadScript = h
 		fmt.Println("Building external scripts")
 		BuildScriptFile(i+"\n"+s, script+".melte-out.js")
 
@@ -113,6 +114,27 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 
 	}
 
+	// adding all css together and to html
+	fmt.Println("CSS", CSST)
+	c := ""
+	for _, i := range CSST {
+		fmt.Println(i)
+
+		c += i
+	}
+	styleNode := &html.Node{
+		Data:     "style",
+		Type:     html.ElementNode,
+		DataAtom: atom.Style,
+	}
+	textNode := &html.Node{
+		Data:     c,
+		Type:     html.TextNode,
+		DataAtom: 0,
+	}
+	root.LastChild.AppendChild(styleNode)
+	styleNode.AppendChild(textNode)
+
 	//fmt.Println("Adding Script\n", file, root)
 	child := root.FirstChild
 	lastChild := root.LastChild
@@ -127,9 +149,10 @@ func BuildPage(root html.Node, outPath string, outPathJS string, inlineJS bool, 
 		}
 	}
 	Scripts = nil
-	HeadScripts = nil
+	// HeadScript = ",var _"
 	ScriptIDs = nil
 	CCount = 0
+	CSST = nil
 	//fmt.Println(len(Scripts))
 	//f, err := os.ReadFile(filepath.Join(outPathJS, "out.js"))
 	//fmt.Println(string(f))
@@ -177,8 +200,10 @@ func transJS(importRemovedLines string, importLines string, HeadScript string, s
 				if strings.HasPrefix(l, "js") {
 					decLine := strings.TrimSpace(lines[lineIndex+1])
 					if strings.HasPrefix(decLine, "var") {
+						fmt.Println("adding global component variable", strings.Replace(decLine, "var", ",", 1))
 						HeadScript += strings.Replace(decLine, "var", ",", 1)
 						lines[lineIndex+1] = ""
+						// global and state preserevrd variable
 
 					} else if strings.HasPrefix(decLine, "let") {
 						varName := strings.Split(strings.Replace(decLine, "let", ",", 1), "=")
@@ -186,6 +211,7 @@ func transJS(importRemovedLines string, importLines string, HeadScript string, s
 						//fmt.Println("adding this to head: " + "let " + strings.Replace(varName[0], ", ", "", 1) + " = " + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[script], "out-", "", 1), ".js", "", 1))
 						lines[lineIndex+1] = "let " + strings.Replace(varName[0], ", ", "", 1) + "=" + strings.TrimSpace(strings.Replace(varName[0], ", ", "", 1)) + strings.Replace(strings.Replace(ScriptIDs[scriptIndex], "out-", "", 1), ".js", "", 1)
 						fmt.Println("added private component variable", lines[lineIndex+1])
+						// private and state preseverd variable
 					}
 				} else if strings.HasPrefix(l, "url") {
 					// jsDict := "{}"
@@ -200,6 +226,6 @@ func transJS(importRemovedLines string, importLines string, HeadScript string, s
 			importRemovedLines += line + "\n"
 		}
 	}
-
+	fmt.Println(HeadScript)
 	return importRemovedLines, importLines, HeadScript
 }
