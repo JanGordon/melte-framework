@@ -84,3 +84,8 @@ global variable set whith
 let h = 1
 
 needs to be saved whe nchanged
+
+
+huge:
+
+rewrite entire component compiler stage in js for client and rerendereing whne new elemtns are added
